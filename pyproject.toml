@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Package to upload ResQEnergy data to a database"
 requires-python = ">=3.13"
 dependencies = [
-    "geoalchemy>=0.7.2",
+    "geoalchemy2>=0.18.0",
+    "psycopg2-binary>=2.9.11",
+    "python-dotenv>=1.2.1",
     "sqlalchemy>=2.0.44",
 ]
