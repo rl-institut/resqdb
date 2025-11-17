@@ -1,3 +1,4 @@
+import argparse
 import os
 
 from dotenv import load_dotenv
@@ -41,15 +42,15 @@ class Scenario(Base):
 
     id = Column(Integer, primary_key=True)
     year = Column(Integer)
-    weather_id = ForeignKey("weather.id")
-    climate_id = ForeignKey("climate.id")
+    weather_id = Column(ForeignKey("weather.id"), nullable=False)
+    climate_id = Column(ForeignKey("climate.id"), nullable=False)
 
 
 class Sensitivity(Base):
     __tablename__ = "sensitivity"
 
     id = Column(Integer, primary_key=True)
-    scenario_id = ForeignKey("scenario.id")
+    scenario_id = Column(ForeignKey("scenario.id"), nullable=False)
     node = Column(String)
     attribute = Column(String)
     value = Column(Float)
@@ -67,21 +68,21 @@ class Flow(Base):
     __tablename__ = "flow"
 
     id = Column(Integer, primary_key=True)
-    scenario_id = ForeignKey("scenario.id")
+    scenario_id = Column(ForeignKey("scenario.id"), nullable=False)
     from_node = Column(String)
     to_node = Column(String)
     timeseries = Column(ARRAY(Float))
-    cluster_id = ForeignKey("cluster.id", nullable=True)
+    cluster_id = Column(ForeignKey("cluster.id"), nullable=True)
 
 
 class Result(Base):
     __tablename__ = "result"
 
     id = Column(Integer, primary_key=True)
-    scenario_id = ForeignKey("scenario.id")
+    scenario_id = Column(ForeignKey("scenario.id"), nullable=False)
     name = Column(String)
     value = Column(Float)
-    cluster_id = ForeignKey("cluster.id", nullable=True)
+    cluster_id = Column(ForeignKey("cluster.id"), nullable=True)
 
 
 def setup_db() -> None:
@@ -90,6 +91,25 @@ def setup_db() -> None:
         connection.commit()
     Base.metadata.create_all(ENGINE)
 
+def teardown_db() -> None:
+    with ENGINE.connect() as connection:
+        connection.execute(text(f"DROP SCHEMA IF EXISTS {DB_SCHEMA} CASCADE"))
+        connection.commit()
+
 
 if __name__ == "__main__":
-    setup_db()
+    parser = argparse.ArgumentParser(
+        prog='resq',
+        description='Handle DB setup and teardown',
+    )
+    subparser = parser.add_subparsers(dest='command')
+    setup = subparser.add_parser("setup")
+    delete = subparser.add_parser("delete")
+    args = parser.parse_args()
+    
+    if args.command == 'setup':
+        print("Setting up DB...")
+        setup_db()
+    elif args.command == 'delete':
+        print("Deleting DB...")
+        teardown_db()
