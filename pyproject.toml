@@ -1,0 +1,9 @@
+[project]
+name = "resqdb"
+version = "0.1.0"
+description = "Package to upload ResQEnergy data to a database"
+requires-python = ">=3.13"
+dependencies = [
+    "geoalchemy>=0.7.2",
+    "sqlalchemy>=2.0.44",
+]
