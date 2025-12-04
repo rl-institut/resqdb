@@ -45,7 +45,7 @@ def get_cluster_for_component(component: str) -> int | None:
     if cluster_name is None:
         return None
 
-    with Session(models.ENGINE) as session:
+    with Session(settings.ENGINE) as session:
         stmt = select(models.Cluster.id).where(models.Cluster.name == cluster_name)
         result = session.execute(stmt).scalar()
         if result is None:
@@ -62,7 +62,7 @@ def create_scenario(
     sensitivity_id: int | None = None,
 ) -> int:
     """Create a new scenario in the database."""
-    with Session(models.ENGINE) as session:
+    with Session(settings.ENGINE) as session:
         climate_id = session.execute(
             select(models.Climate.id).where(models.Climate.name == climate),
         ).scalar_one_or_none()
@@ -95,7 +95,7 @@ def store_scenario_results(scenario_id: int, results: dict) -> None:
 
     Store scalars and sequences of oemof results dictionary under scenario.
     """
-    with Session(models.ENGINE) as session:
+    with Session(settings.ENGINE) as session:
         # Check if a scenario exists
         try:
             session.get_one(models.Scenario, {"id": scenario_id})
@@ -139,14 +139,14 @@ def store_scenario_results(scenario_id: int, results: dict) -> None:
 
 def delete_scenario(scenario_id: int) -> None:
     """Delete a scenario from the database."""
-    with Session(models.ENGINE) as session:
+    with Session(settings.ENGINE) as session:
         session.delete(session.get(models.Scenario, scenario_id))
     logger.info(f"Scenario #{scenario_id} deleted from database.")
 
 
 def delete_all_scenarios() -> None:
     """Delete all scenarios from the database."""
-    with Session(models.ENGINE) as session:
+    with Session(settings.ENGINE) as session:
         session.query(models.Scenario).delete()
         session.commit()
     logger.info("All scenarios deleted from database.")

@@ -1,9 +1,7 @@
 """Database models for the RESQ app."""
 
 import argparse
-import os
 
-from dotenv import load_dotenv
 from geoalchemy2 import Geometry
 from loguru import logger
 from sqlalchemy import (
@@ -14,30 +12,15 @@ from sqlalchemy import (
     Integer,
     MetaData,
     String,
-    create_engine,
     text,
     select,
     Index,
 )
 from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy.exc import IntegrityError
-import settings
 import geopandas as gpd
 
-load_dotenv()
-
-DB_USER = os.environ["DB_USER"]
-DB_PASSWORD = os.environ["DB_PASSWORD"]
-DB_HOST = os.environ["DB_HOST"]
-DB_PORT = os.environ["DB_PORT"]
-DB_NAME = os.environ["DB_NAME"]
-DB_SCHEMA = os.environ.get("DB_SCHEMA", "resqenergy")
-
-ENGINE = create_engine(
-    f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}",
-)
-
-CLUSTER_GEOPACKAGE = settings.GEOPACKAGES_DIR / "clusters.gpkg"
+from settings import DB_SCHEMA, ENGINE, CLUSTER_GEOPACKAGE
 
 Base = declarative_base(metadata=MetaData(schema=DB_SCHEMA))
 
