@@ -6,7 +6,18 @@ requires-python = ">=3.13"
 dependencies = [
     "faker>=38.0.0",
     "geoalchemy2>=0.18.0",
+    "geopandas>=1.1.1",
+    "loguru>=0.7.3",
+    "oemof-tabular",
     "psycopg2-binary>=2.9.11",
     "python-dotenv>=1.2.1",
     "sqlalchemy>=2.0.44",
+]
+
+[tool.uv.sources]
+oemof-tabular = { git = "https://github.com/oemof/oemof-tabular" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
 ]

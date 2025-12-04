@@ -1,0 +1,13 @@
+{
+  "WISTA":[
+    "el-storage",
+    "pv"
+  ],
+  "Bürogebäude":[
+    "wind"
+  ],
+  "Industrie":[
+    "coal-st",
+    "lignite-st"
+  ]
+}
