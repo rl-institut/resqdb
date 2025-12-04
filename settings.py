@@ -2,6 +2,9 @@
 
 import os
 import pathlib
+import warnings
+
+warnings.filterwarnings("ignore", category=FutureWarning, module="oemof.solph")
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 

@@ -2,9 +2,6 @@
 
 import scenarios
 import simulation
-import warnings
-
-warnings.filterwarnings("ignore", category=FutureWarning, module="oemof.solph")
 
 
 def run() -> None:
