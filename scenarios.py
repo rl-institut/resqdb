@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import json
 
-from sqlalchemy import select
+from loguru import logger
+from sqlalchemy import exc, select
 from sqlalchemy.orm import Session
 
 import models
 import settings
-from loguru import logger
 
 with settings.CLUSTER_COMPONENT_FILE.open("r", encoding="utf-8") as json_file:
     CLUSTERS = json.load(json_file)
@@ -70,9 +70,9 @@ def create_scenario(year: int, climate: str, weather: str, sensitivity_id: int |
             ).scalar_one_or_none()
         )
         if climate_id is None:
-            raise KeyError(f"Climate '{climate}' not found in database")
+            raise KeyError(f"Climate '{climate}' not found in database.")
         if weather_id is None:
-            raise KeyError(f"Weather '{weather}' not found in database")
+            raise KeyError(f"Weather '{weather}' not found in database.")
 
         logger.info(f"Creating scenario ({year=}, {weather=}, {climate=}, {sensitivity_id=})")
         scenario = models.Scenario(
@@ -83,8 +83,56 @@ def create_scenario(year: int, climate: str, weather: str, sensitivity_id: int |
         )
         session.add(scenario)
         session.commit()
-        logger.info(f"Created scenario {scenario.id}")
+        logger.info(f"Created scenario #{scenario.id}.")
         return scenario.id
+
+
+def store_scenario_results(scenario_id: int, results: dict) -> None:
+    """
+    Store results for a scenario in the database.
+
+    Store scalars and sequences of oemof results dictionary under scenario.
+    """
+    with Session(models.ENGINE) as session:
+        # Check if a scenario exists
+        try:
+            session.get_one(models.Scenario, {"id": scenario_id})
+        except exc.NoResultFound:
+            raise ValueError(f"Scenario #{scenario_id} not found in database.")
+
+        for (from_node, to_node), result in results.items():
+            from_node_label = from_node.label
+            to_node_label = to_node.label if to_node is not None else None
+            cluster_id = None
+            if from_node_label in COMPONENT_CLUSTERS:
+                cluster_id = get_cluster_for_component(from_node_label)
+            if to_node_label in COMPONENT_CLUSTERS:
+                cluster_id = get_cluster_for_component(to_node_label)
+
+            for attribute, value in result["scalars"].items():
+                scalar_result = models.Result(scenario_id=scenario_id, from_node=from_node_label, to_node=to_node_label, attribute=attribute, value=value, cluster_id=cluster_id)
+                session.add(scalar_result)
+
+            for attribute, series in result["sequences"].items():
+                flow = models.Flow(scenario_id=scenario_id, from_node=from_node_label, to_node=to_node_label, attribute=attribute, timeseries=series.tolist(), cluster_id=cluster_id)
+                session.add(flow)
+
+        session.commit()
+        logger.info(f"Stored results for scenario #{scenario_id}.")
+
+def delete_scenario(scenario_id: int) -> None:
+    """Delete a scenario from the database."""
+    with Session(models.ENGINE) as session:
+        session.delete(session.get(models.Scenario, scenario_id))
+    logger.info(f"Scenario #{scenario_id} deleted from database.")
+
+
+def delete_all_scenarios() -> None:
+    """Delete all scenarios from the database."""
+    with Session(models.ENGINE) as session:
+        session.query(models.Scenario).delete()
+        session.commit()
+    logger.info("All scenarios deleted from database.")
 
 
 if __name__ == "__main__":

@@ -105,10 +105,15 @@ class Cluster(Base):
 class Flow(Base):
     __tablename__ = "flow"
 
+    __table_args__ = (
+        Index("flow_unique", "scenario_id", "from_node", "to_node", "attribute", unique=True),
+    )
+
     id = Column(Integer, primary_key=True)
-    scenario_id = Column(ForeignKey("scenario.id"), nullable=False)
+    scenario_id = Column(ForeignKey("scenario.id", ondelete="CASCADE"), nullable=False)
     from_node = Column(String)
     to_node = Column(String)
+    attribute = Column(String)
     timeseries = Column(ARRAY(Float))
     cluster_id = Column(ForeignKey("cluster.id"), nullable=True)
 
@@ -117,8 +122,10 @@ class Result(Base):
     __tablename__ = "result"
 
     id = Column(Integer, primary_key=True)
-    scenario_id = Column(ForeignKey("scenario.id"), nullable=False)
-    name = Column(String)
+    scenario_id = Column(ForeignKey("scenario.id", ondelete="CASCADE"), nullable=False)
+    from_node = Column(String)
+    to_node = Column(String)
+    attribute = Column(String)
     value = Column(Float)
     cluster_id = Column(ForeignKey("cluster.id"), nullable=True)
 
