@@ -1,3 +1,4 @@
+"""Holds settings for the project."""
 
 import os
 import pathlib
