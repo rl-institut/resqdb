@@ -8,7 +8,8 @@ from sqlalchemy import create_engine
 
 warnings.filterwarnings("ignore", category=FutureWarning, module="oemof.solph")
 
-load_dotenv()
+env_file = os.environ.get("ENV_FILE", ".env")
+load_dotenv(env_file)
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
