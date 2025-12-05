@@ -26,6 +26,7 @@ DB_NAME = os.environ["DB_NAME"]
 DB_SCHEMA = os.environ.get("DB_SCHEMA", "resqenergy")
 ENGINE = create_engine(
     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}",
+    connect_args={"options": "-c search_path=resqenergy,public"},
 )
 
 CLUSTER_COMPONENT_FILE = ROOT_DIR / "clusters.json"
