@@ -18,6 +18,7 @@ ROOT_DIR = pathlib.Path(__file__).parent
 DATAPACKAGE_DIR = ROOT_DIR / "datapackages"
 RESULTS_DIR = ROOT_DIR / "results"
 GEOPACKAGES_DIR = ROOT_DIR / "geopackages"
+VIEWS_DIR = ROOT_DIR / "views"
 
 DB_USER = os.environ["DB_USER"]
 DB_PASSWORD = os.environ["DB_PASSWORD"]
