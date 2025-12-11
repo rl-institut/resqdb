@@ -77,12 +77,13 @@ def store_scenario_results(scenario_id: int, results: dict) -> None:
                 session.add(scalar_result)
 
             for attribute, series in result["sequences"].items():
+                cleaned_series = series.dropna()
                 flow = models.Flow(
                     scenario_id=scenario_id,
                     from_node=from_node_label,
                     to_node=to_node_label,
                     attribute=attribute,
-                    timeseries=series.tolist(),
+                    timeseries=cleaned_series.tolist(),
                     cluster_id=cluster_id,
                 )
                 session.add(flow)
