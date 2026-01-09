@@ -25,6 +25,7 @@ dev = [
 
 # ==== ruff ====
 [tool.ruff]
+output-format = "concise"  # This enables file-links to errors in git console
 line-length = 120
 lint.select = ["ALL"]
 exclude = [

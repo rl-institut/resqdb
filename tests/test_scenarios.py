@@ -1,7 +1,8 @@
 """Test scenarios.py."""
 
 import pytest
-from scenarios import COMPONENT_CLUSTERS, get_cluster_for_component
+from scenarios import get_cluster_for_component
+from settings import COMPONENT_CLUSTERS
 
 
 COMPONENT_CLUSTERS["test"] = "non-existing"
@@ -24,5 +25,5 @@ def test_get_cluster_for_component_returns_none_if_component_unknown() -> None:
 
 
 def test_get_cluster_for_component() -> None:
-    """Get cluster ID for existing component."""
+    """Get cluster ID for an existing component."""
     assert get_cluster_for_component("wind") is not None

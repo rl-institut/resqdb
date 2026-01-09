@@ -16,7 +16,26 @@ def create_scenario(
     weather: str,
     sensitivity_id: int | None = None,
 ) -> int:
-    """Create a new scenario in the database."""
+    """
+    Create a new scenario in the database with given setuo.
+
+    Scenario is set up with the provided year and connected to climate, weather, and optional sensitivity identifiers.
+    This function associates the given parameters with their corresponding database identifiers,
+    creates a new scenario record, and commits it to the database.
+
+    Args:
+        year (int): The year associated with the scenario.
+        climate (str): The name of the climate type for the scenario.
+        weather (str): The name of the weather type for the scenario.
+        sensitivity_id (int | None): The optional sensitivity identifier for the scenario.
+
+    Returns:
+        int: The unique identifier of the created scenario.
+
+    Raises:
+        KeyError: If the specified climate or weather is not found in the database.
+
+    """
     with Session(settings.ENGINE) as session:
         climate_id = session.execute(
             select(models.Climate.id).where(models.Climate.name == climate),
@@ -45,7 +64,13 @@ def create_scenario(
 
 
 def delete_scenario(scenario_id: int) -> None:
-    """Delete a scenario from the database."""
+    """
+    Delete a scenario from the database.
+
+    Args:
+        scenario_id (int): ID of the scenario to delete.
+
+    """
     with Session(settings.ENGINE) as session:
         session.delete(session.get(models.Scenario, scenario_id))
     logger.info(f"Scenario #{scenario_id} deleted from database.")
@@ -67,6 +92,10 @@ def get_cluster_for_component(component: str) -> int | None:
     KeyError if the mapped cluster name does not exist in the database. In case of
     any database error (e.g., missing environment, unavailable DB), also raise
     KeyError so callers get a consistent signal that the cluster cannot be found.
+
+    Args:
+        component (str): Component to look up the cluster for.
+
     """
     cluster_name = settings.COMPONENT_CLUSTERS.get(component)
     if cluster_name is None:

@@ -9,7 +9,23 @@ import settings
 
 
 def simulate_datapackage(datapackage_name: str) -> dict:
-    """Simulate a datapackage and return the results."""
+    """
+    Simulate a data package and return results.
+
+    This function loads JSON definition, builds an energy system,
+    adds constraints, and solves it using the specified solver. Returns the results
+    of the simulation as a dictionary.
+
+    Args:
+        datapackage_name (str): The name of the data package folder, which contains
+            a `datapackage.json` file. This file defines the energy system structure,
+            constraints, and other necessary components for the simulation.
+
+    Returns:
+        dict: The simulation results, containing outputs such as optimized values
+            or any other data produced after solving the system.
+
+    """
     datapackage_json = str(
         settings.DATAPACKAGE_DIR / datapackage_name / "datapackage.json",
     )

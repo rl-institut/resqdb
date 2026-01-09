@@ -114,7 +114,6 @@ class Flow(Base):
     """Holds oemof timeseries results for a scenario."""
 
     __tablename__ = "flow"
-
     __table_args__ = (
         Index(
             "flow_unique",
@@ -208,17 +207,37 @@ def teardown_db() -> None:
         connection.commit()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """
+    Parse command-line arguments to execute database setup or teardown operations.
+
+    This function defines a command-line interface (CLI) for managing a database
+    through two primary commands: `setup` and `delete`. The `setup` command prepares
+    the database configuration and initialization, while the `delete` command handles
+    the teardown and removal of associated resources.
+
+    Raises:
+        SystemExit: Raised implicitly by `argparse` when invalid arguments are
+            provided or if the help message is displayed.
+
+    """
     parser = argparse.ArgumentParser(
         prog="resq",
         description="Handle DB setup and teardown",
     )
-    subparser = parser.add_subparsers(dest="command")
-    setup = subparser.add_parser("setup")
-    delete = subparser.add_parser("delete")
-    args = parser.parse_args()
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-    if args.command == "setup":
-        setup_db()
-    elif args.command == "delete":
-        teardown_db()
+    # Setup command
+    setup_parser = subparsers.add_parser("setup")
+    setup_parser.set_defaults(func=setup_db)
+
+    # Delete command
+    delete_parser = subparsers.add_parser("delete")
+    delete_parser.set_defaults(func=teardown_db)
+
+    args = parser.parse_args()
+    args.func()
+
+
+if __name__ == "__main__":
+    main()

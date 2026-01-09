@@ -15,7 +15,19 @@ from scenarios import get_cluster_for_component
 
 
 def store_results_in_folder(datapackage_name: str, results: dict) -> None:
-    """Store the results as CSVs locally in the results' folder."""
+    """
+    Store the results of an oemof simulation as CSV files in the results folder.
+
+    Results are categorized into scalars and sequences. If a folder with the specified
+    datapackage name already exists and is not empty, the method skips saving the
+    results unless overwriting of results is explicitly enabled.
+
+    Args:
+        datapackage_name (str): Name of the folder where results will be stored.
+        results (dict): A dictionary with keys as tuples (node1, node2) and values
+            as dictionaries containing 'scalars' and 'sequences' DataFrames.
+
+    """
     results_path = settings.RESULTS_DIR / datapackage_name
 
     # Check if folder already exists
@@ -45,9 +57,23 @@ def store_results_in_folder(datapackage_name: str, results: dict) -> None:
 
 def store_scenario_results(scenario_id: int, results: dict) -> None:
     """
-    Store results for a scenario in the database.
+    Store results of a scenario into the database.
 
-    Store scalars and sequences of oemof results dictionary under scenario.
+    This function processes and stores scalar and sequence data associated with a
+    specific scenario by interacting with the database. Scalars and sequences are
+    mapped using their attributes and related metadata such as nodes and cluster
+    information. If the scenario ID provided does not exist in the database, an
+    error will be raised.
+
+    Args:
+        scenario_id (int): Unique identifier of the scenario to store results for.
+        results (dict): Dictionary containing result data for the scenario. The keys
+            are tuples of from_node and to_node, and the values are dictionaries
+            containing 'scalars' and 'sequences' data.
+
+    Raises:
+        ValueError: If the given scenario ID does not exist in the database.
+
     """
     with Session(settings.ENGINE) as session:
         # Check if a scenario exists

@@ -44,7 +44,24 @@ with CLUSTER_COMPONENT_FILE.open("r", encoding="utf-8") as json_file:
 
 
 def _create_component_to_cluster_mapping(clusters: dict) -> dict:
-    """Create a mapping from components to their clusters."""
+    """
+    Create a mapping from components to their corresponding clusters.
+
+    This function processes a dictionary where keys represent cluster identifiers and
+    values are lists of components belonging to each cluster. It generates a reverse
+    mapping from components to their associated cluster. If a component is found in
+    multiple clusters, the function raises an error to prevent ambiguity.
+
+    Args:
+        clusters (dict): A dictionary mapping cluster identifiers to lists of components.
+
+    Returns:
+        dict: A dictionary mapping components to their corresponding cluster identifiers.
+
+    Raises:
+        ValueError: If a component is present in more than one cluster.
+
+    """
     component_mapping = {}
     for cluster, components in clusters.items():
         for component in components:
