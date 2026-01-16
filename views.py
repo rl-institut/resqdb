@@ -2,10 +2,11 @@
 
 from collections.abc import Iterable
 
-from sqlalchemy.orm import Session
+from loguru import logger
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from settings import VIEWS_DIR, ENGINE
+from settings import ENGINE, VIEWS_DIR
 
 
 def get_views() -> Iterable[tuple[str, str]]:
@@ -27,7 +28,7 @@ def get_views() -> Iterable[tuple[str, str]]:
             continue
         with view.open("r", encoding="utf-8") as view_file:
             query = view_file.read()
-            query = query.strip(";")
+            query = query.replace(";", "")
             yield view.stem, query
 
 
@@ -54,6 +55,7 @@ def create_view(view_name: str, query: str, *, recreate: bool = False) -> None:
             text(f"CREATE MATERIALIZED VIEW IF NOT EXISTS {view_name} AS ({query});"),
         )
         session.commit()
+        logger.info(f"Created materialized view '{view_name}'.")
 
 
 def create_all_views(*, recreate: bool = False) -> None:
