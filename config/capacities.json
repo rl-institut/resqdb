@@ -1,0 +1,15 @@
+{
+  "mobility": 90,
+  "wind": 41,
+  "pv_ground": 11,
+  "pv_roof": 1,
+  "pv_agri": 200,
+  "pv_marsh": 30,
+  "other_biomass": 2000,
+  "biomass_marsh": 100,
+  "electrolyzer": 2,
+  "battery": 50,
+  "electricity": 16,
+  "heat": 37,
+  "marsh": 5
+}

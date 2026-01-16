@@ -1,0 +1,19 @@
+{
+  "wind":"Wind",
+  "EL-import":"Strom-Import",
+  "pv_ground":"PV - Freiflächen",
+  "pv_agri":"PV - Agri",
+  "pv_marsh":"PV - Moor",
+  "pv_roof":"PV - Dachanlagen",
+  "SB-backpressure":"BHKW Biomasse",
+  "BG-backpressure":"Biogasanlage",
+  "EL-excess":"Abregelung",
+  "EL-heating":"Wärme",
+  "heat":"Wärme",
+  "electrolyser":"Elektrolyseur",
+  "electricity":"Strom (Haushalte)",
+  "EL-export":"Strom-Export",
+  "mobility":"Mobilität",
+  "battery_in":"Batterie (Ladung)",
+  "battery_out":"Batterie (Entladung)"
+}
