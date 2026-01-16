@@ -92,7 +92,7 @@ def store_scenario_results(scenario_id: int, results: dict) -> None:
                 cluster_id = get_cluster_for_component(to_node_label)
 
             for attribute, value in result["scalars"].items():
-                scalar_result = models.Result(
+                scalar_result = models.Scalar(
                     scenario_id=scenario_id,
                     from_node=from_node_label,
                     to_node=to_node_label,
@@ -104,12 +104,13 @@ def store_scenario_results(scenario_id: int, results: dict) -> None:
 
             for attribute, series in result["sequences"].items():
                 cleaned_series = series.dropna()
-                flow = models.Flow(
+                flow = models.Sequence(
                     scenario_id=scenario_id,
                     from_node=from_node_label,
                     to_node=to_node_label,
                     attribute=attribute,
                     timeseries=cleaned_series.tolist(),
+                    total_energy=cleaned_series.sum(),
                     cluster_id=cluster_id,
                 )
                 session.add(flow)

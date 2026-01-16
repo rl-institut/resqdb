@@ -110,13 +110,13 @@ class Cluster(Base):
     geometry = Column(Geometry(geometry_type="POLYGON", srid=4326))
 
 
-class Flow(Base):
+class Sequence(Base):
     """Holds oemof timeseries results for a scenario."""
 
-    __tablename__ = "flow"
+    __tablename__ = "sequence"
     __table_args__ = (
         Index(
-            "flow_unique",
+            "sequence_unique",
             "scenario_id",
             "from_node",
             "to_node",
@@ -131,13 +131,14 @@ class Flow(Base):
     to_node = Column(String)
     attribute = Column(String)
     timeseries = Column(ARRAY(Float))
-    cluster_id = Column(ForeignKey("cluster.id"), nullable=True)
+    total_energy = Column(Float)
+    cluster_id = Column(ForeignKey("cluster.id", ondelete="SET NULL"), nullable=True)
 
 
-class Result(Base):
+class Scalar(Base):
     """Holds oemof scalar results for a scenario."""
 
-    __tablename__ = "result"
+    __tablename__ = "scalar"
 
     id = Column(Integer, primary_key=True)
     scenario_id = Column(ForeignKey("scenario.id", ondelete="CASCADE"), nullable=False)
@@ -145,7 +146,7 @@ class Result(Base):
     to_node = Column(String)
     attribute = Column(String)
     value = Column(Float)
-    cluster_id = Column(ForeignKey("cluster.id"), nullable=True)
+    cluster_id = Column(ForeignKey("cluster.id", ondelete="SET NULL"), nullable=True)
 
 
 def add_default_weather_and_climate() -> None:
@@ -201,10 +202,8 @@ def setup_db() -> None:
 
 def teardown_db() -> None:
     """Drop DB schema and tables."""
-    logger.info("Tearing down DB schema and tables.")
-    with ENGINE.connect() as connection:
-        connection.execute(text(f"DROP SCHEMA IF EXISTS {DB_SCHEMA} CASCADE"))
-        connection.commit()
+    logger.info("Tearing down DB tables.")
+    Base.metadata.drop_all(ENGINE)
 
 
 def main() -> None:

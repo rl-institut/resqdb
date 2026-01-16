@@ -2,8 +2,8 @@ SELECT
     scenario_id,
     cluster.name,
     from_node AS technology,
-    (SELECT SUM(t) FROM unnest(timeseries) AS t) AS energy
+    total_energy AS energy
 FROM cluster
-JOIN flow ON cluster.id = flow.cluster_id
-WHERE flow.attribute = 'flow'
+JOIN sequence ON cluster.id = sequence.cluster_id
+WHERE sequence.attribute = 'flow'
 ORDER BY scenario_id, cluster.name;
