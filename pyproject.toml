@@ -57,3 +57,6 @@ lint.ignore = [
 fix = true
 show-fixes = true
 lint.unfixable = ["UP007", "I001"]
+
+[tool.isort]
+multi_line_output = 3
