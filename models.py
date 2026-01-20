@@ -2,6 +2,7 @@
 
 import argparse
 
+import geopandas as gpd
 from geoalchemy2 import Geometry
 from loguru import logger
 from sqlalchemy import (
@@ -9,31 +10,40 @@ from sqlalchemy import (
     Column,
     Float,
     ForeignKey,
+    Index,
     Integer,
     MetaData,
     String,
-    text,
+    UniqueConstraint,
     select,
-    Index,
+    text,
 )
-from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy.exc import IntegrityError
-import geopandas as gpd
+from sqlalchemy.orm import Session, declarative_base, relationship
 
-from settings import DB_SCHEMA, ENGINE, CLUSTER_GEOPACKAGE
+import views
+from settings import CATEGORIES, CLUSTER_GEOPACKAGE, DB_SCHEMA, ENGINE, LABELS
 
 Base = declarative_base(metadata=MetaData(schema=DB_SCHEMA))
 
 DEFAULT_WEATHERS = [
-    ("rainy", "Rainy weather"),
-    ("sunny", "Sunny weather"),
-    ("cloudy", "Cloudy weather"),
+    ("extreme1", "Extremes Wetter 1"),
+    ("extreme2", "Extremes Wetter 2"),
+    ("extreme3", "Extremes Wetter 3"),
+    ("mean", "gemittelte Wetterdaten"),
 ]
 
 DEFAULT_CLIMATES = [
-    ("hot", "Hot climate"),
-    ("medium", "Medium climate"),
-    ("cold", "Cold climate"),
+    ("RCP8.5", "Repräsentative Konzentrationspfad mit Strahlungsantrieb von 8.5 W/m²"),
+    ("RCP4.5", "Repräsentative Konzentrationspfad mit Strahlungsantrieb von 4.5 W/m²"),
+    ("RCP2.6", "Repräsentative Konzentrationspfad mit Strahlungsantrieb von 2.6 W/m²"),
+    ("reference", "Historisches Referenzjahr"),
+]
+
+DEFAULT_PERIODS = [
+    ("P1", 2020, 2005, 2035, "Referenzjahr 2020"),
+    ("P2", 2035, 2021, 2050, "Referenzjahr 2035"),
+    ("P3", 2050, 2036, 2065, "Referenzjahr 2050"),
 ]
 
 
@@ -46,6 +56,10 @@ class Weather(Base):
     name = Column(String, unique=True)
     description = Column(String)
 
+    def __str__(self) -> str:
+        """Return string representation."""
+        return self.name
+
 
 class Climate(Base):
     """Holds information about climate conditions."""
@@ -56,6 +70,27 @@ class Climate(Base):
     name = Column(String, unique=True)
     description = Column(String)
 
+    def __str__(self) -> str:
+        """Return string representation."""
+        return self.name
+
+
+class Period(Base):
+    """Holds information about simulation period."""
+
+    __tablename__ = "period"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True)
+    reference_year = Column(Integer)
+    period_start = Column(Integer)
+    period_end = Column(Integer)
+    description = Column(String)
+
+    def __str__(self) -> str:
+        """Return string representation."""
+        return self.name
+
 
 class Scenario(Base):
     """Holds information about a scenario."""
@@ -63,15 +98,20 @@ class Scenario(Base):
     __tablename__ = "scenario"
 
     id = Column(Integer, primary_key=True)
-    year = Column(Integer)
+    period_id = Column(ForeignKey("period.id"), nullable=False)
     weather_id = Column(ForeignKey("weather.id"), nullable=False)
     climate_id = Column(ForeignKey("climate.id"), nullable=False)
     sensitivity_id = Column(ForeignKey("sensitivity.id"), nullable=True)
 
+    period = relationship("Period")
+    weather = relationship("Weather")
+    climate = relationship("Climate")
+    sensitivity = relationship("Sensitivity")
+
     __table_args__ = (
         Index(
             "scenario_without_sensitivity",
-            year,
+            period_id,
             weather_id,
             climate_id,
             unique=True,
@@ -79,7 +119,7 @@ class Scenario(Base):
         ),
         Index(
             "scenario_with_sensitivity",
-            year,
+            period_id,
             weather_id,
             climate_id,
             sensitivity_id,
@@ -87,6 +127,13 @@ class Scenario(Base):
             postgresql_where=(sensitivity_id.is_not(None)),
         ),
     )
+
+    def __str__(self) -> str:
+        """Return string representation of scenario."""
+        name = f"{self.weather}_{self.climate}_{self.period}"
+        if self.sensitivity:
+            name += f"_{self.sensitivity}"
+        return name
 
 
 class Sensitivity(Base):
@@ -98,6 +145,10 @@ class Sensitivity(Base):
     node = Column(String)
     attribute = Column(String)
     value = Column(Float)
+
+    def __str__(self) -> str:
+        """Return string representation."""
+        return f"{self.node}:{self.attribute}={self.value}"
 
 
 class Cluster(Base):
@@ -149,6 +200,56 @@ class Scalar(Base):
     cluster_id = Column(ForeignKey("cluster.id", ondelete="SET NULL"), nullable=True)
 
 
+class Label(Base):
+    """Holds mappings to label components based on from/to node."""
+
+    __tablename__ = "label"
+    __table_args__ = (UniqueConstraint("from_node", "to_node"),)
+
+    id = Column(Integer, primary_key=True)
+    from_node = Column(String)
+    to_node = Column(String)
+    label = Column(String)
+
+
+class Category(Base):
+    """Holds mappings to categorize components into demand/production based on from/to node."""
+
+    __tablename__ = "category"
+    __table_args__ = (UniqueConstraint("from_node", "to_node"),)
+
+    id = Column(Integer, primary_key=True)
+    from_node = Column(String)
+    to_node = Column(String)
+    category = Column(String)
+
+
+def add_default_labels() -> None:
+    """Migrate labels to database."""
+    with Session(ENGINE) as session:
+        logger.info("Adding default labels to the database.")
+        for (from_node, to_node), label in LABELS.items():
+            instance = Label(from_node=from_node, to_node=to_node, label=label)
+            session.add(instance)
+        try:
+            session.commit()
+        except IntegrityError:
+            logger.warning("Default labels already exist.")
+
+
+def add_default_categories() -> None:
+    """Migrate categories to database."""
+    with Session(ENGINE) as session:
+        logger.info("Adding default categories to the database.")
+        for (from_node, to_node), category in CATEGORIES.items():
+            c = Category(from_node=from_node, to_node=to_node, category=category)
+            session.add(c)
+        try:
+            session.commit()
+        except IntegrityError:
+            logger.warning("Default categories already exist.")
+
+
 def add_default_weather_and_climate() -> None:
     """Add default weather and climate entries to the database."""
     logger.info("Adding default weather and climate entries to the database.")
@@ -164,6 +265,25 @@ def add_default_weather_and_climate() -> None:
             session.commit()
         except IntegrityError:
             logger.warning("Default weather and climate entries already exist.")
+
+
+def add_default_periods() -> None:
+    """Migrate periods to database."""
+    with Session(ENGINE) as session:
+        logger.info("Adding default periods to the database.")
+        for name, year, start, end, description in DEFAULT_PERIODS:
+            p = Period(
+                name=name,
+                reference_year=year,
+                period_start=start,
+                period_end=end,
+                description=description,
+            )
+            session.add(p)
+        try:
+            session.commit()
+        except IntegrityError:
+            logger.warning("Default periods already exist.")
 
 
 def add_clusters_from_geopackage() -> None:
@@ -197,13 +317,18 @@ def setup_db() -> None:
         connection.commit()
     Base.metadata.create_all(ENGINE)
     add_default_weather_and_climate()
+    add_default_periods()
+    add_default_labels()
+    add_default_categories()
     add_clusters_from_geopackage()
 
 
 def teardown_db() -> None:
     """Drop DB schema and tables."""
-    logger.info("Tearing down DB tables.")
+    logger.info("Tearing down DB tables and views.")
+    views.delete_all_views()
     Base.metadata.drop_all(ENGINE)
+    logger.info("Dropped database.")
 
 
 def main() -> None:

@@ -11,7 +11,7 @@ import settings
 
 
 def create_scenario(
-    year: int,
+    period: str,
     climate: str,
     weather: str,
     sensitivity_id: int | None = None,
@@ -24,7 +24,7 @@ def create_scenario(
     creates a new scenario record, and commits it to the database.
 
     Args:
-        year (int): The year associated with the scenario.
+        period (str): The period associated with the scenario.
         climate (str): The name of the climate type for the scenario.
         weather (str): The name of the weather type for the scenario.
         sensitivity_id (int | None): The optional sensitivity identifier for the scenario.
@@ -37,6 +37,9 @@ def create_scenario(
 
     """
     with Session(settings.ENGINE) as session:
+        period_id = session.execute(
+            select(models.Period.id).where(models.Period.name == period),
+        ).scalar_one_or_none()
         climate_id = session.execute(
             select(models.Climate.id).where(models.Climate.name == climate),
         ).scalar_one_or_none()
@@ -49,17 +52,17 @@ def create_scenario(
             raise KeyError(f"Weather '{weather}' not found in database.")
 
         logger.info(
-            f"Creating scenario ({year=}, {weather=}, {climate=}, {sensitivity_id=})",
+            f"Creating scenario ({period=}, {weather=}, {climate=}, {sensitivity_id=})",
         )
         scenario = models.Scenario(
-            year=year,
+            period_id=period_id,
             weather_id=int(weather_id),
             climate_id=int(climate_id),
             sensitivity_id=sensitivity_id,
         )
         session.add(scenario)
         session.commit()
-        logger.info(f"Created scenario #{scenario.id}.")
+        logger.info(f"Created scenario #{scenario.id} ({scenario}).")
         return scenario.id
 
 

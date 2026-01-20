@@ -2,7 +2,11 @@ SELECT
     scenario_id,
     from_node,
     to_node,
+    label.label,
+    category.category,
     total_energy
 FROM sequence
+LEFT JOIN label USING(from_node, to_node)
+LEFT JOIN category USING(from_node, to_node)
 WHERE sequence.attribute = 'flow' and to_node NOT LIKE '%storage%' and from_node NOT LIKE '%conn%' and to_node NOT LIKE '%conn%'
 ORDER BY scenario_id

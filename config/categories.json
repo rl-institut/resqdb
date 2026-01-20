@@ -1,0 +1,16 @@
+{
+  "BG-backpressure|el": "Erzeugung",
+  "pv_agri|el": "Erzeugung",
+  "pv_ground|el": "Erzeugung",
+  "pv_marsh|el": "Erzeugung",
+  "pv_roof|el": "Erzeugung",
+  "wind|el": "Erzeugung",
+  "SB-backpressure|el": "Erzeugung",
+  "EL-import|elec": "Erzeugung",
+  "elec|EL-heating": "Verbrauch",
+  "elec|electricity": "Verbrauch",
+  "elec|electrolyser": "Verbrauch",
+  "elec|mobility": "Verbrauch",
+  "el|EL-export": "Verbrauch",
+  "el|EL-excess": "Verbrauch"
+}

@@ -1,6 +1,7 @@
 """Create materialized views from SQL files."""
 
 from collections.abc import Iterable
+from pathlib import Path
 
 from loguru import logger
 from sqlalchemy import text
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Session
 from settings import ENGINE, VIEWS_DIR
 
 
-def get_views() -> Iterable[tuple[str, str]]:
+def get_views() -> Iterable[Path]:
     """
     Retrieve SQL views from a directory.
 
@@ -18,18 +19,21 @@ def get_views() -> Iterable[tuple[str, str]]:
     stem and query content as a tuple.
 
     Yields:
-        Iterable[tuple[str, str]]: An iterable of tuples where the first element is the
-        stem of the SQL file (filename without extension) and the second element is the
-        SQL query content.
+        Iterable[Path]: An iterable of paths to SQL files.
 
     """
     for view in VIEWS_DIR.iterdir():
         if view.suffix != ".sql":
             continue
-        with view.open("r", encoding="utf-8") as view_file:
-            query = view_file.read()
-            query = query.replace(";", "")
-            yield view.stem, query
+        yield view
+
+
+def read_query(view: Path) -> str:
+    """Read a SQL query from a file."""
+    with view.open("r", encoding="utf-8") as view_file:
+        query = view_file.read()
+        query = query.replace(";", "")
+        return query
 
 
 def create_view(view_name: str, query: str, *, recreate: bool = False) -> None:
@@ -67,8 +71,24 @@ def create_all_views(*, recreate: bool = False) -> None:
             if it already exists. Defaults to False.
 
     """
-    for view_name, query in get_views():
-        create_view(view_name, query, recreate=recreate)
+    for view_path in get_views():
+        query = read_query(view_path)
+        create_view(view_path.stem, query, recreate=recreate)
+
+
+def delete_view(view_name: str) -> None:
+    """Delete a materialized view."""
+    with Session(ENGINE) as session:
+        session.execute(text(f"DROP MATERIALIZED VIEW IF EXISTS {view_name};"))
+        session.commit()
+    logger.info(f"Deleted materialized view '{view_name}'.")
+
+
+def delete_all_views() -> None:
+    """Delete all materialized views defined in views folder."""
+    for view_path in get_views():
+        view_name = view_path.stem
+        delete_view(view_name)
 
 
 if __name__ == "__main__":
