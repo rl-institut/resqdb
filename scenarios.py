@@ -2,12 +2,57 @@
 
 from __future__ import annotations
 
+import dataclasses
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from collections.abc import Iterable
+
+import yaml
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 import models
 import settings
+from settings import SCENARIOS_DIR
+
+
+@dataclasses.dataclass(frozen=True)
+class ScenarioConfig:
+    """Configuration object for a scenario."""
+
+    name: str
+    scenario: dict
+    datapackage: str
+    capacities: dict
+
+
+def get_scenarios_in_folder(folder: Path = SCENARIOS_DIR) -> Iterable[Path]:
+    """Get a list of scenarios in the given folder (defaults to scenario directory)."""
+    for file in folder.iterdir():
+        if file.suffix == ".yaml":
+            yield file
+
+
+def load_scenario_settings_from_file(filepath: str | Path) -> ScenarioConfig:
+    """
+    Read the scenario settings from a file.
+
+    If only filename is given as a string, the file is read from scenario directory.
+    """
+    if isinstance(filepath, str):
+        filepath = settings.SCENARIOS_DIR / filepath
+    if not filepath.exists():
+        error_msg = f"Scenario file '{filepath}' not found."
+        logger.error(error_msg)
+        raise FileNotFoundError(error_msg)
+    with filepath.open("r", encoding="utf-8") as f:
+        scenario_config = yaml.safe_load(f)
+    if "name" not in scenario_config:
+        scenario_config["name"] = filepath.stem
+    return ScenarioConfig(**scenario_config)
 
 
 def create_scenario(
@@ -15,9 +60,9 @@ def create_scenario(
     climate: str,
     weather: str,
     sensitivity_id: int | None = None,
-) -> int:
+) -> tuple[int, bool]:
     """
-    Create a new scenario in the database with given setuo.
+    Create a new scenario in the database with given setup.
 
     Scenario is set up with the provided year and connected to climate, weather, and optional sensitivity identifiers.
     This function associates the given parameters with their corresponding database identifiers,
@@ -31,6 +76,7 @@ def create_scenario(
 
     Returns:
         int: The unique identifier of the created scenario.
+        bool: Whether scenario has been created or already existed.
 
     Raises:
         KeyError: If the specified climate or weather is not found in the database.
@@ -51,19 +97,19 @@ def create_scenario(
         if weather_id is None:
             raise KeyError(f"Weather '{weather}' not found in database.")
 
-        logger.info(
-            f"Creating scenario ({period=}, {weather=}, {climate=}, {sensitivity_id=})",
-        )
-        scenario = models.Scenario(
+        scenario, created = models.get_or_create(
+            session,
+            models.Scenario,
             period_id=period_id,
             weather_id=int(weather_id),
             climate_id=int(climate_id),
             sensitivity_id=sensitivity_id,
         )
-        session.add(scenario)
-        session.commit()
-        logger.info(f"Created scenario #{scenario.id} ({scenario}).")
-        return scenario.id
+        if created:
+            logger.info(f"Created scenario #{scenario.id} ({scenario}).")
+        else:
+            logger.warning(f"Scenario #{scenario.id} ({scenario}) already exists.")
+        return scenario.id, created
 
 
 def delete_scenario(scenario_id: int) -> None:
@@ -112,7 +158,3 @@ def get_cluster_for_component(component: str) -> int | None:
             logger.error(error_msg)
             raise KeyError(error_msg)
         return int(result)
-
-
-if __name__ == "__main__":
-    create_scenario(2050, "hot", "rainy")

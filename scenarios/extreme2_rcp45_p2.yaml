@@ -1,0 +1,22 @@
+
+scenario:
+  period: P2
+  climate: RCP4.5
+  weather: extreme2
+
+datapackage: scenario_es
+
+capacities:
+  mobility: 90
+  wind: 60
+  pv_ground: 15
+  pv_roof: 12
+  pv_agri: 220
+  pv_marsh: 50
+  other_biomass: 1000
+  biomass_marsh: 140
+  electrolyzer: 9
+  battery: 56
+  electricity: 20
+  heat: 25
+  marsh: 15

@@ -1,6 +1,6 @@
 """Database models for the RESQ app."""
 
-import argparse
+from typing import Any
 
 import geopandas as gpd
 from geoalchemy2 import Geometry
@@ -25,6 +25,7 @@ import views
 from settings import CATEGORIES, CLUSTER_GEOPACKAGE, DB_SCHEMA, ENGINE, LABELS
 
 Base = declarative_base(metadata=MetaData(schema=DB_SCHEMA))
+
 
 DEFAULT_WEATHERS = [
     ("extreme1", "Extremes Wetter 1"),
@@ -224,6 +225,25 @@ class Category(Base):
     category = Column(String)
 
 
+def get_or_create(
+    session,  # noqa: ANN001
+    model,  # noqa: ANN001
+    **kwargs: Any,  # noqa: ANN401
+) -> tuple[Any, bool]:
+    """
+    Get or create a model instance.
+
+    Returns instance and boolean if instance already exists.
+    """
+    instance = session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance, False
+    instance = model(**kwargs)
+    session.add(instance)
+    session.commit()
+    return instance, True
+
+
 def add_default_labels() -> None:
     """Migrate labels to database."""
     with Session(ENGINE) as session:
@@ -329,39 +349,3 @@ def teardown_db() -> None:
     views.delete_all_views()
     Base.metadata.drop_all(ENGINE)
     logger.info("Dropped database.")
-
-
-def main() -> None:
-    """
-    Parse command-line arguments to execute database setup or teardown operations.
-
-    This function defines a command-line interface (CLI) for managing a database
-    through two primary commands: `setup` and `delete`. The `setup` command prepares
-    the database configuration and initialization, while the `delete` command handles
-    the teardown and removal of associated resources.
-
-    Raises:
-        SystemExit: Raised implicitly by `argparse` when invalid arguments are
-            provided or if the help message is displayed.
-
-    """
-    parser = argparse.ArgumentParser(
-        prog="resq",
-        description="Handle DB setup and teardown",
-    )
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    # Setup command
-    setup_parser = subparsers.add_parser("setup")
-    setup_parser.set_defaults(func=setup_db)
-
-    # Delete command
-    delete_parser = subparsers.add_parser("delete")
-    delete_parser.set_defaults(func=teardown_db)
-
-    args = parser.parse_args()
-    args.func()
-
-
-if __name__ == "__main__":
-    main()
