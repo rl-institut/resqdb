@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from functools import partial
+
 import argparse
 from typing import TYPE_CHECKING
 
@@ -13,6 +15,9 @@ import models
 import scenarios
 import simulation
 import views
+
+
+NO_ARGS_FCT = ("setup", "nuke", "views")
 
 
 def run_all() -> None:
@@ -70,7 +75,7 @@ def main() -> None:
         description="Commands for resqdb",
     )
 
-    subparsers = parser.add_subparsers(required=True)
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
     # DB setup command
     run_parser = subparsers.add_parser("run")
@@ -90,8 +95,15 @@ def main() -> None:
     delete_parser.add_argument("id", nargs="?", default="all")
     delete_parser.set_defaults(func=handle_delete)
 
+    # DB views command
+    view_parser = subparsers.add_parser("views")
+    view_parser.set_defaults(func=partial(views.create_all_views, recreate=True))
+
     args = parser.parse_args()
-    args.func(args)
+    if args.command in NO_ARGS_FCT:
+        args.func()
+    else:
+        args.func(args)
 
 
 if __name__ == "__main__":
