@@ -211,9 +211,9 @@ class Label(Base):
     __table_args__ = (UniqueConstraint("from_node", "to_node"),)
 
     id = Column(Integer, primary_key=True)
-    from_node = Column(String)
+    from_node = Column(String, nullable=False)
     to_node = Column(String)
-    label = Column(String)
+    label = Column(String, nullable=False)
 
 
 class Category(Base):
@@ -223,9 +223,10 @@ class Category(Base):
     __table_args__ = (UniqueConstraint("from_node", "to_node"),)
 
     id = Column(Integer, primary_key=True)
-    from_node = Column(String)
+    from_node = Column(String, nullable=False)
     to_node = Column(String)
-    category = Column(String)
+    category = Column(String, nullable=False)
+    is_renewable = Column(Boolean, nullable=False)
 
 
 def get_or_create(
@@ -264,8 +265,13 @@ def add_default_categories() -> None:
     """Migrate categories to database."""
     with Session(ENGINE) as session:
         logger.info("Adding default categories to the database.")
-        for (from_node, to_node), category in CATEGORIES.items():
-            c = Category(from_node=from_node, to_node=to_node, category=category)
+        for (from_node, to_node), entries in CATEGORIES.items():
+            c = Category(
+                from_node=from_node,
+                to_node=to_node,
+                category=entries["category"],
+                is_renewable=entries["is_renewable"],
+            )
             session.add(c)
         try:
             session.commit()
