@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from functools import partial
 
 import argparse
 from typing import TYPE_CHECKING
@@ -17,7 +16,7 @@ import simulation
 import views
 
 
-NO_ARGS_FCT = ("setup", "nuke", "views")
+NO_ARGS_FCT = ("setup", "nuke")
 
 
 def run_all() -> None:
@@ -55,6 +54,14 @@ def handle_run(args: argparse.Namespace) -> None:
         run_scenario(args.scenario)
 
 
+def handle_views(args: argparse.Namespace) -> None:
+    """Handle scenario views."""
+    if args.command == "recreate":
+        views.create_all_views(recreate=True)
+    elif args.command == "drop":
+        views.delete_all_views()
+
+
 def main() -> None:
     """
     Parse command-line arguments to execute database setup or teardown operations.
@@ -75,7 +82,7 @@ def main() -> None:
         description="Commands for resqdb",
     )
 
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers = parser.add_subparsers(dest="parser", required=True)
 
     # DB setup command
     run_parser = subparsers.add_parser("run")
@@ -97,10 +104,11 @@ def main() -> None:
 
     # DB views command
     view_parser = subparsers.add_parser("views")
-    view_parser.set_defaults(func=partial(views.create_all_views, recreate=True))
+    view_parser.add_argument("command", nargs="?", default="recreate")
+    view_parser.set_defaults(func=handle_views)
 
     args = parser.parse_args()
-    if args.command in NO_ARGS_FCT:
+    if args.parser in NO_ARGS_FCT:
         args.func()
     else:
         args.func(args)
