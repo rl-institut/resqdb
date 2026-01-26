@@ -17,6 +17,7 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     select,
+    delete,
     text,
 )
 from sqlalchemy.exc import IntegrityError
@@ -226,6 +227,7 @@ class Category(Base):
     from_node = Column(String, nullable=False)
     to_node = Column(String)
     category = Column(String, nullable=False)
+    carrier = Column(String, nullable=False)
     is_renewable = Column(Boolean, nullable=False)
 
 
@@ -248,35 +250,33 @@ def get_or_create(
     return instance, True
 
 
-def add_default_labels() -> None:
+def update_default_labels() -> None:
     """Migrate labels to database."""
     with Session(ENGINE) as session:
+        session.execute(delete(Label))
         logger.info("Adding default labels to the database.")
         for (from_node, to_node), label in LABELS.items():
             instance = Label(from_node=from_node, to_node=to_node, label=label)
             session.add(instance)
-        try:
-            session.commit()
-        except IntegrityError:
-            logger.warning("Default labels already exist.")
+
+        session.commit()
 
 
-def add_default_categories() -> None:
+def update_default_categories() -> None:
     """Migrate categories to database."""
     with Session(ENGINE) as session:
+        session.execute(delete(Category))
         logger.info("Adding default categories to the database.")
         for (from_node, to_node), entries in CATEGORIES.items():
             c = Category(
                 from_node=from_node,
                 to_node=to_node,
                 category=entries["category"],
+                carrier=entries["carrier"],
                 is_renewable=entries["is_renewable"],
             )
             session.add(c)
-        try:
-            session.commit()
-        except IntegrityError:
-            logger.warning("Default categories already exist.")
+        session.commit()
 
 
 def add_default_weather_and_climate() -> None:
@@ -347,8 +347,8 @@ def setup_db() -> None:
     Base.metadata.create_all(ENGINE)
     add_default_weather_and_climate()
     add_default_periods()
-    add_default_labels()
-    add_default_categories()
+    update_default_labels()
+    update_default_categories()
     add_clusters_from_geopackage()
 
 
