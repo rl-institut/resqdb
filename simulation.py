@@ -1,5 +1,7 @@
 """Module to run oemof simulations and store results."""
 
+from __future__ import annotations
+
 from oemof.solph import EnergySystem, Model, processing
 from oemof.tabular import datapackage  # noqa: F401
 from oemof.tabular.constraint_facades import CONSTRAINT_TYPE_MAP
@@ -12,7 +14,7 @@ import settings
 def simulate_datapackage(
     datapackage_name: str,
     parameters: dict | None = None,
-) -> dict:
+) -> tuple[dict, dict]:
     """
     Simulate a data package and return results.
 
@@ -48,8 +50,12 @@ def simulate_datapackage(
     )
     m.solve("cbc")
 
-    es.params = processing.parameter_as_dict(es)
-    return m.results()
+    input_data = processing.parameter_as_dict(
+        es,
+        exclude_attrs=["bus", "from_bus", "to_bus", "from_node", "to_node"],
+    )
+    output_data = m.results()
+    return input_data, output_data
 
 
 if __name__ == "__main__":

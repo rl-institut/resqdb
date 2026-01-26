@@ -55,7 +55,11 @@ def store_results_in_folder(datapackage_name: str, results: dict) -> None:
         )
 
 
-def store_scenario_results(scenario_id: int, results: dict) -> None:
+def store_scenario_results(
+    scenario_id: int,
+    input_data: dict,
+    output_data: dict,
+) -> None:
     """
     Store results of a scenario into the database.
 
@@ -67,7 +71,10 @@ def store_scenario_results(scenario_id: int, results: dict) -> None:
 
     Args:
         scenario_id (int): Unique identifier of the scenario to store results for.
-        results (dict): Dictionary containing result data for the scenario. The keys
+        input_data (dict): Dictionary containing input data for the scenario. The keys
+            are tuples of from_node and to_node, and the values are dictionaries
+            containing 'scalars' and 'sequences' data.
+        output_data (dict): Dictionary containing result data for the scenario. The keys
             are tuples of from_node and to_node, and the values are dictionaries
             containing 'scalars' and 'sequences' data.
 
@@ -82,38 +89,43 @@ def store_scenario_results(scenario_id: int, results: dict) -> None:
         except exc.NoResultFound as err:
             raise ValueError(f"Scenario #{scenario_id} not found in database.") from err
 
-        for (from_node, to_node), result in results.items():
-            from_node_label = from_node.label
-            to_node_label = to_node.label if to_node is not None else None
-            cluster_id = None
-            if from_node_label in settings.COMPONENT_CLUSTERS:
-                cluster_id = get_cluster_for_component(from_node_label)
-            if to_node_label in settings.COMPONENT_CLUSTERS:
-                cluster_id = get_cluster_for_component(to_node_label)
+        for is_exogenous, data in ((True, input_data), (False, output_data)):
+            for (from_node, to_node), result in data.items():
+                from_node_label = from_node.label
+                to_node_label = to_node.label if to_node is not None else None
+                cluster_id = None
+                if from_node_label in settings.COMPONENT_CLUSTERS:
+                    cluster_id = get_cluster_for_component(from_node_label)
+                if to_node_label in settings.COMPONENT_CLUSTERS:
+                    cluster_id = get_cluster_for_component(to_node_label)
 
-            for attribute, value in result["scalars"].items():
-                scalar_result = models.Scalar(
-                    scenario_id=scenario_id,
-                    from_node=from_node_label,
-                    to_node=to_node_label,
-                    attribute=attribute,
-                    value=value,
-                    cluster_id=cluster_id,
-                )
-                session.add(scalar_result)
+                for attribute, value in result["scalars"].items():
+                    if not isinstance(value, (float, int, bool)):
+                        continue
+                    scalar_result = models.Scalar(
+                        scenario_id=scenario_id,
+                        is_exogenous=is_exogenous,
+                        from_node=from_node_label,
+                        to_node=to_node_label,
+                        attribute=attribute,
+                        value=float(value),
+                        cluster_id=cluster_id,
+                    )
+                    session.add(scalar_result)
 
-            for attribute, series in result["sequences"].items():
-                cleaned_series = series.dropna()
-                flow = models.Sequence(
-                    scenario_id=scenario_id,
-                    from_node=from_node_label,
-                    to_node=to_node_label,
-                    attribute=attribute,
-                    timeseries=cleaned_series.tolist(),
-                    total_energy=cleaned_series.sum(),
-                    cluster_id=cluster_id,
-                )
-                session.add(flow)
+                for attribute, series in result["sequences"].items():
+                    cleaned_series = series.dropna()
+                    flow = models.Sequence(
+                        scenario_id=scenario_id,
+                        is_exogenous=is_exogenous,
+                        from_node=from_node_label,
+                        to_node=to_node_label,
+                        attribute=attribute,
+                        timeseries=cleaned_series.tolist(),
+                        total_energy=cleaned_series.sum(),
+                        cluster_id=cluster_id,
+                    )
+                    session.add(flow)
 
         session.commit()
         logger.info(f"Stored results for scenario #{scenario_id}.")

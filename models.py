@@ -7,6 +7,7 @@ from geoalchemy2 import Geometry
 from loguru import logger
 from sqlalchemy import (
     ARRAY,
+    Boolean,
     Column,
     Float,
     ForeignKey,
@@ -179,6 +180,7 @@ class Sequence(Base):
 
     id = Column(Integer, primary_key=True)
     scenario_id = Column(ForeignKey("scenario.id", ondelete="CASCADE"), nullable=False)
+    is_exogenous = Column(Boolean, nullable=False)
     from_node = Column(String)
     to_node = Column(String)
     attribute = Column(String)
@@ -194,6 +196,7 @@ class Scalar(Base):
 
     id = Column(Integer, primary_key=True)
     scenario_id = Column(ForeignKey("scenario.id", ondelete="CASCADE"), nullable=False)
+    is_exogenous = Column(Boolean, nullable=False)
     from_node = Column(String)
     to_node = Column(String)
     attribute = Column(String)
