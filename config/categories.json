@@ -1,17 +1,25 @@
 {
   "battery|el": {"category": "Erzeugung", "is_renewable": true, "carrier": "electricity"},
   "BG-backpressure|el": {"category": "Erzeugung", "is_renewable": false, "carrier": "electricity"},
+  "BG-backpressure|th": {"category": "Erzeugung", "is_renewable": false, "carrier": "heat"},
   "pv_agri|el": {"category": "Erzeugung", "is_renewable": true, "carrier": "electricity"},
   "pv_ground|el": {"category": "Erzeugung", "is_renewable": true, "carrier": "electricity"},
   "pv_marsh|el": {"category": "Erzeugung", "is_renewable": true, "carrier": "electricity"},
   "pv_roof|el": {"category": "Erzeugung", "is_renewable": true, "carrier": "electricity"},
   "wind|el": {"category": "Erzeugung", "is_renewable": true, "carrier": "electricity"},
   "SB-backpressure|el": {"category": "Erzeugung", "is_renewable": false, "carrier": "electricity"},
+  "SB-backpressure|th": {"category": "Erzeugung", "is_renewable": false, "carrier": "heat"},
   "EL-import|elec": {"category": "Erzeugung", "is_renewable": false, "carrier": "electricity"},
+  "EL-heating|th": {"category": "Erzeugung", "is_renewable": false, "carrier": "heat"},
   "elec|EL-heating": {"category": "Verbrauch", "is_renewable": false, "carrier": "electricity"},
   "elec|electricity": {"category": "Verbrauch", "is_renewable": false, "carrier": "electricity"},
   "elec|electrolyser": {"category": "Verbrauch", "is_renewable": false, "carrier": "electricity"},
   "elec|mobility": {"category": "Verbrauch", "is_renewable": false, "carrier": "electricity"},
   "el|EL-export": {"category": "Verbrauch", "is_renewable": false, "carrier": "electricity"},
-  "el|EL-excess":{"category": "Verbrauch", "is_renewable": false, "carrier": "electricity"}
+  "el|EL-excess":{"category": "Verbrauch", "is_renewable": false, "carrier": "electricity"},
+  "electrolyser|hy": {"category": "Erzeugung", "is_renewable": true, "carrier": "hydrogen"},
+  "hy|HY-export": {"category": "Verbrauch", "is_renewable": false, "carrier": "hydrogen"},
+  "th|TH-excess": {"category": "Verbrauch", "is_renewable": false, "carrier": "heat"},
+  "th|TH-storage-home": {"category": "Verbrauch", "is_renewable": false, "carrier": "heat"},
+  "th|heat": {"category": "Verbrauch", "is_renewable": false, "carrier": "heat"}
 }
