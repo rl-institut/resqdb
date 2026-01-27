@@ -56,6 +56,7 @@ def load_scenario_settings_from_file(filepath: str | Path) -> ScenarioConfig:
 
 
 def create_scenario(
+    name: str,
     period: str,
     climate: str,
     weather: str,
@@ -69,6 +70,7 @@ def create_scenario(
     creates a new scenario record, and commits it to the database.
 
     Args:
+        name (str): Name to show for scenario
         period (str): The period associated with the scenario.
         climate (str): The name of the climate type for the scenario.
         weather (str): The name of the weather type for the scenario.
@@ -100,6 +102,7 @@ def create_scenario(
         scenario, created = models.get_or_create(
             session,
             models.Scenario,
+            name=name,
             period_id=period_id,
             weather_id=int(weather_id),
             climate_id=int(climate_id),

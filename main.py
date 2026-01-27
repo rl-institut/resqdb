@@ -29,7 +29,10 @@ def run_all() -> None:
 def run_scenario(file: str | Path) -> None:
     """Run scenario from scenario folder."""
     scenario_config = scenarios.load_scenario_settings_from_file(file)
-    scenario_id, created = scenarios.create_scenario(**scenario_config.scenario)
+    scenario_id, created = scenarios.create_scenario(
+        scenario_config.name,
+        **scenario_config.scenario,
+    )
     if created:
         input_data, output_data = simulation.simulate_datapackage(
             scenario_config.datapackage,

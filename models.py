@@ -101,6 +101,7 @@ class Scenario(Base):
     __tablename__ = "scenario"
 
     id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
     period_id = Column(ForeignKey("period.id"), nullable=False)
     weather_id = Column(ForeignKey("weather.id"), nullable=False)
     climate_id = Column(ForeignKey("climate.id"), nullable=False)
@@ -133,10 +134,7 @@ class Scenario(Base):
 
     def __str__(self) -> str:
         """Return string representation of scenario."""
-        name = f"{self.weather}_{self.climate}_{self.period}"
-        if self.sensitivity:
-            name += f"_{self.sensitivity}"
-        return name
+        return self.name
 
 
 class Sensitivity(Base):

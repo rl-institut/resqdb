@@ -2,6 +2,7 @@ WITH
   renewables AS (
     SELECT
       scenario_id,
+      scenario.name AS scenario_name,
       from_node,
       to_node,
       label.label,
@@ -10,6 +11,7 @@ WITH
       timeseries
     FROM
       sequence
+      JOIN scenario ON sequence.scenario_id = scenario.id
       LEFT JOIN label USING (from_node, to_node)
       LEFT JOIN category USING (from_node, to_node)
     WHERE
@@ -26,6 +28,7 @@ WITH
   autarky_per_timestep AS (
     SELECT
       scenario_id,
+      scenario_name,
       timestep,
       SUM(
         CASE
@@ -38,24 +41,26 @@ WITH
       unnest(timeseries) WITH ORDINALITY a (elem, timestep)
     GROUP BY
       scenario_id,
+      scenario_name,
       timestep
   )
 SELECT
   scenario_id,
+  scenario_name,
   'Zeitgleich' AS type,
-  (
-    COUNT(*) FILTER (
-      WHERE
-        value > 0
-    )
-  )::DECIMAL / 8760 * 100 AS autarky
+  COUNT(*) FILTER (
+    WHERE
+      value > 0
+  ) AS autarky
 FROM
   autarky_per_timestep
 GROUP BY
-  scenario_id
+  scenario_id,
+  scenario_name
 UNION
 SELECT
   scenario_id,
+  scenario_name,
   'Bilanziell' AS type,
   SUM(total_energy) FILTER (
     WHERE
@@ -67,4 +72,5 @@ SELECT
 FROM
   renewables
 GROUP BY
-  scenario_id
+  scenario_id,
+  scenario_name
