@@ -60,6 +60,8 @@ def handle_run(args: argparse.Namespace) -> None:
 def handle_views(args: argparse.Namespace) -> None:
     """Handle scenario views."""
     if args.command == "recreate":
+        models.update_default_labels()
+        models.update_default_categories()
         views.create_all_views(recreate=True)
     elif args.command == "drop":
         views.delete_all_views()
