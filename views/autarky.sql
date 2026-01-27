@@ -3,16 +3,12 @@ WITH
     SELECT
       scenario_id,
       scenario.name AS scenario_name,
-      from_node,
-      to_node,
-      label.label,
       category,
       total_energy,
       timeseries
     FROM
       sequence
       JOIN scenario ON sequence.scenario_id = scenario.id
-      LEFT JOIN label USING (from_node, to_node)
       LEFT JOIN category USING (from_node, to_node)
     WHERE
       attribute = 'flow'

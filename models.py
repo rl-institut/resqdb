@@ -207,11 +207,10 @@ class Label(Base):
     """Holds mappings to label components based on from/to node."""
 
     __tablename__ = "label"
-    __table_args__ = (UniqueConstraint("from_node", "to_node"),)
 
     id = Column(Integer, primary_key=True)
-    from_node = Column(String, nullable=False)
-    to_node = Column(String)
+    component = Column(String, unique=True, nullable=False)
+    is_bus = Column(Boolean, nullable=False)
     label = Column(String, nullable=False)
 
 
@@ -253,8 +252,12 @@ def update_default_labels() -> None:
     with Session(ENGINE) as session:
         session.execute(delete(Label))
         logger.info("Adding default labels to the database.")
-        for (from_node, to_node), label in LABELS.items():
-            instance = Label(from_node=from_node, to_node=to_node, label=label)
+        for component, label_data in LABELS.items():
+            instance = Label(
+                component=component,
+                label=label_data["label"],
+                is_bus=label_data["bus"],
+            )
             session.add(instance)
 
         session.commit()

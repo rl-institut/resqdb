@@ -1,5 +1,7 @@
 """Holds settings for the project."""
 
+from __future__ import annotations
+
 import json
 import os
 import pathlib
@@ -94,13 +96,7 @@ COMPONENT_CLUSTERS = _create_component_to_cluster_mapping(CLUSTERS)
 
 # --- Labels and categories Mapping ---
 with (CONFIG_DIR / "labels.json").open("r", encoding="utf-8") as json_file:
-    labels_raw = json.load(json_file)
-
-LABELS: dict[tuple[str, str], str] = {}
-for key, value in labels_raw.items():
-    nodes_raw = key.split("|")
-    nodes = (nodes_raw[0], None if nodes_raw[1] == "none" else nodes_raw[1])
-    LABELS[nodes] = value
+    LABELS: dict[str, dict[str, bool | str]] = json.load(json_file)
 
 with (CONFIG_DIR / "categories.json").open("r", encoding="utf-8") as json_file:
     categories_raw = json.load(json_file)
