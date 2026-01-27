@@ -24,20 +24,36 @@ WITH
       )
     ORDER BY
       scenario_id
+  ),
+  autarky_per_timestep AS (
+    SELECT
+      scenario_id,
+      scenario_name,
+      timestep,
+      SUM(
+        CASE
+          WHEN category = 'Verbrauch' THEN - elem
+          ELSE elem
+        END
+      ) AS value
+    FROM
+      renewables,
+      unnest(timeseries) WITH ORDINALITY a (elem, timestep)
+    GROUP BY
+      scenario_id,
+      scenario_name,
+      timestep
   )
 SELECT
   scenario_id,
   scenario_name,
-  'Bilanziell' AS type,
-  SUM(total_energy) FILTER (
+  'Zeitgleich' AS type,
+  COUNT(*) FILTER (
     WHERE
-      category = 'Erzeugung'
-  ) / SUM(total_energy) FILTER (
-    WHERE
-      category = 'Verbrauch'
-  ) * 100 AS autarky
+      value > 0
+  ) AS autarky
 FROM
-  renewables
+  autarky_per_timestep
 GROUP BY
   scenario_id,
   scenario_name
