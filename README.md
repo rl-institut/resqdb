@@ -13,7 +13,7 @@ Key features include:
 - Geographical mapping of results to clusters.
 - Automated creation of materialized views in DB for further usage in visualization tool (i.e. Apache Superset)
 
-## Usage
+## Setup
 
 ### Prerequisites
 
@@ -43,29 +43,34 @@ DB_SCHEMA=resqenergy
 OEMOF_SCENARIO=investment
 ```
 
-### Database Setup
+## Usage
 
-Before running simulations, you need to set up the database schema and default data:
+The application provides a command-line interface `resq` to manage the simulation process and the database. You can run it using `python main.py` or through the installed package entry point.
 
+### Available Commands
+
+- **`run [scenario]`**: Run energy system simulations.
+    - `scenario`: Name of the scenario to run or `all` (default) to run all scenarios found in the scenarios folder.
+- **`setup`**: Initialize the database schema and tables.
+- **`nuke`**: Drop the database schema and all its contents (use with caution).
+- **`delete [id]`**: Delete scenario results from the database.
+    - `id`: The ID of the scenario to delete or `all` (default) to delete all scenarios.
+- **`views [command]`**: Manage database materialized views for visualization.
+    - `command`: `recreate` (default) to update metadata and refresh views, or `drop` to remove all views.
+
+### Examples
+
+Run all scenarios:
 ```bash
-uv run models.py setup
+python main.py run all
 ```
 
-To delete the database schema (CAUTION: this will remove all data):
-
+Initialize the database:
 ```bash
-uv run models.py delete
+python main.py setup
 ```
 
-### Running Simulations
-
-To run the main simulation and export the results to the database:
-
+Recreate materialized views:
 ```bash
-uv run main.py
+python main.py views recreate
 ```
-
-This will:
-1. Run an `oemof-tabular` simulation for the scenario specified in `main.py` (default: "investment").
-2. Create a new scenario entry in the database.
-3. Export simulation results (scalars and flows) to the database.
