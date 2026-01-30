@@ -57,42 +57,8 @@ OEMOF_OVERWRITE_RESULTS = os.getenv("OEMOF_OVERWRITE_RESULTS", "False") == "True
 CLUSTER_COMPONENT_FILE = CONFIG_DIR / "clusters.json"
 CLUSTER_GEOPACKAGE = GEOPACKAGES_DIR / "clusters.gpkg"
 
-
-def _create_component_to_cluster_mapping(clusters_data: dict) -> dict:
-    """
-    Create a mapping from components to their corresponding clusters.
-
-    This function processes a dictionary where keys represent cluster identifiers and
-    values are lists of components belonging to each cluster. It generates a reverse
-    mapping from components to their associated cluster. If a component is found in
-    multiple clusters, the function raises an error to prevent ambiguity.
-
-    Args:
-        clusters_data (dict): A dictionary mapping cluster identifiers to lists of components.
-
-    Returns:
-        dict: A dictionary mapping components to their corresponding cluster identifiers.
-
-    Raises:
-        ValueError: If a component is present in more than one cluster.
-
-    """
-    component_mapping = {}
-    for cluster, components in clusters_data.items():
-        for component in components:
-            if component in component_mapping:
-                raise ValueError(
-                    f"Component {component} found in multiple clusters: "
-                    f"{component_mapping[component]} and {cluster}",
-                )
-            component_mapping[component] = cluster
-    return component_mapping
-
-
 with CLUSTER_COMPONENT_FILE.open("r", encoding="utf-8") as json_file:
     CLUSTERS = json.load(json_file)
-
-COMPONENT_CLUSTERS = _create_component_to_cluster_mapping(CLUSTERS)
 
 # --- Labels and categories Mapping ---
 with (CONFIG_DIR / "labels.json").open("r", encoding="utf-8") as json_file:

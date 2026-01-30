@@ -16,15 +16,15 @@ from sqlalchemy import (
     MetaData,
     String,
     UniqueConstraint,
-    select,
     delete,
+    select,
     text,
 )
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, declarative_base, relationship
 
 import views
-from settings import CATEGORIES, CLUSTER_GEOPACKAGE, DB_SCHEMA, ENGINE, LABELS
+from settings import CATEGORIES, CLUSTER_GEOPACKAGE, CLUSTERS, DB_SCHEMA, ENGINE, LABELS
 
 Base = declarative_base(metadata=MetaData(schema=DB_SCHEMA))
 
@@ -162,6 +162,16 @@ class Cluster(Base):
     geometry = Column(Geometry(geometry_type="POLYGON", srid=4326))
 
 
+class ClusterComponent(Base):
+    """Maps component to a cluster."""
+
+    __tablename__ = "cluster_component"
+
+    id = Column(Integer, primary_key=True)
+    cluster_id = Column(ForeignKey("cluster.id", ondelete="CASCADE"), nullable=False)
+    from_node = Column(String, nullable=False)
+
+
 class Sequence(Base):
     """Holds oemof timeseries results for a scenario."""
 
@@ -185,7 +195,6 @@ class Sequence(Base):
     attribute = Column(String)
     timeseries = Column(ARRAY(Float))
     total_energy = Column(Float)
-    cluster_id = Column(ForeignKey("cluster.id", ondelete="SET NULL"), nullable=True)
 
 
 class Scalar(Base):
@@ -200,7 +209,6 @@ class Scalar(Base):
     to_node = Column(String)
     attribute = Column(String)
     value = Column(Float)
-    cluster_id = Column(ForeignKey("cluster.id", ondelete="SET NULL"), nullable=True)
 
 
 class Label(Base):
@@ -339,6 +347,34 @@ def add_clusters_from_geopackage() -> None:
         logger.info(f"Added {len(gdf)} clusters from GeoPackage")
 
 
+def get_cluster_by_name(cluster_name: str) -> int:
+    """Return cluster ID by its name."""
+    with Session(ENGINE) as session:
+        stmt = select(Cluster.id).where(Cluster.name == cluster_name)
+        result = session.execute(stmt).scalar()
+        if result is None:
+            error_msg = f"Cluster named '{cluster_name}' not found in database."
+            logger.error(error_msg)
+            raise KeyError(error_msg)
+        return int(result)
+
+
+def update_cluster_components() -> None:
+    """Migrate cluster componentes to database."""
+    with Session(ENGINE) as session:
+        session.execute(delete(ClusterComponent))
+        logger.info("Adding default cluster component mappings to the database.")
+        for cluster, components in CLUSTERS.items():
+            cluster_id = get_cluster_by_name(cluster)
+            for component in components:
+                c = ClusterComponent(
+                    from_node=component,
+                    cluster_id=cluster_id,
+                )
+                session.add(c)
+        session.commit()
+
+
 def setup_db() -> None:
     """Set up DB schema and tables from models."""
     logger.info("Setting up DB schema and tables.")
@@ -351,6 +387,7 @@ def setup_db() -> None:
     update_default_labels()
     update_default_categories()
     add_clusters_from_geopackage()
+    update_cluster_components()
 
 
 def teardown_db() -> None:

@@ -1,13 +1,16 @@
 {
   "WISTA":[
-    "el-storage",
-    "pv"
+    "wind",
+    "pv_agri",
+    "pv_ground",
+    "pv_marsh",
+    "pv_roof"
   ],
   "Bürogebäude":[
-    "wind"
+    "heat",
+    "TH-storage-home"
   ],
   "Industrie":[
-    "coal-st",
-    "lignite-st"
+    "electrolyser"
   ]
 }

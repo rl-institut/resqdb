@@ -62,6 +62,7 @@ def handle_views(args: argparse.Namespace) -> None:
     if args.command == "recreate":
         models.update_default_labels()
         models.update_default_categories()
+        models.update_cluster_components()
         views.create_all_views(recreate=True)
     elif args.command == "drop":
         views.delete_all_views()

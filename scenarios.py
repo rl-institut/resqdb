@@ -15,8 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 import models
-import settings
-from settings import SCENARIOS_DIR
+from settings import ENGINE, SCENARIOS_DIR
 
 
 @dataclasses.dataclass(frozen=True)
@@ -43,7 +42,7 @@ def load_scenario_settings_from_file(filepath: str | Path) -> ScenarioConfig:
     If only filename is given as a string, the file is read from scenario directory.
     """
     if isinstance(filepath, str):
-        filepath = settings.SCENARIOS_DIR / filepath
+        filepath = SCENARIOS_DIR / filepath
     if not filepath.exists():
         error_msg = f"Scenario file '{filepath}' not found."
         logger.error(error_msg)
@@ -84,7 +83,7 @@ def create_scenario(
         KeyError: If the specified climate or weather is not found in the database.
 
     """
-    with Session(settings.ENGINE) as session:
+    with Session(ENGINE) as session:
         period_id = session.execute(
             select(models.Period.id).where(models.Period.name == period),
         ).scalar_one_or_none()
@@ -123,41 +122,14 @@ def delete_scenario(scenario_id: int) -> None:
         scenario_id (int): ID of the scenario to delete.
 
     """
-    with Session(settings.ENGINE) as session:
+    with Session(ENGINE) as session:
         session.delete(session.get(models.Scenario, scenario_id))
     logger.info(f"Scenario #{scenario_id} deleted from database.")
 
 
 def delete_all_scenarios() -> None:
     """Delete all scenarios from the database."""
-    with Session(settings.ENGINE) as session:
+    with Session(ENGINE) as session:
         session.query(models.Scenario).delete()
         session.commit()
     logger.info("All scenarios deleted from database.")
-
-
-def get_cluster_for_component(component: str) -> int | None:
-    """
-    Look up the cluster for a component based on its name.
-
-    Returns the cluster ID if found, None if the component is unknown, and raises
-    KeyError if the mapped cluster name does not exist in the database. In case of
-    any database error (e.g., missing environment, unavailable DB), also raise
-    KeyError so callers get a consistent signal that the cluster cannot be found.
-
-    Args:
-        component (str): Component to look up the cluster for.
-
-    """
-    cluster_name = settings.COMPONENT_CLUSTERS.get(component)
-    if cluster_name is None:
-        return None
-
-    with Session(settings.ENGINE) as session:
-        stmt = select(models.Cluster.id).where(models.Cluster.name == cluster_name)
-        result = session.execute(stmt).scalar()
-        if result is None:
-            error_msg = f"Cluster '{cluster_name}' for component '{component}' not found in database."
-            logger.error(error_msg)
-            raise KeyError(error_msg)
-        return int(result)

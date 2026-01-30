@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 
 import models
 import settings
-from scenarios import get_cluster_for_component
 
 
 def store_results_in_folder(datapackage_name: str, results: dict) -> None:
@@ -93,11 +92,6 @@ def store_scenario_results(
             for (from_node, to_node), result in data.items():
                 from_node_label = from_node.label
                 to_node_label = to_node.label if to_node is not None else None
-                cluster_id = None
-                if from_node_label in settings.COMPONENT_CLUSTERS:
-                    cluster_id = get_cluster_for_component(from_node_label)
-                if to_node_label in settings.COMPONENT_CLUSTERS:
-                    cluster_id = get_cluster_for_component(to_node_label)
 
                 for attribute, value in result["scalars"].items():
                     if not isinstance(value, (float, int, bool)):
@@ -109,7 +103,6 @@ def store_scenario_results(
                         to_node=to_node_label,
                         attribute=attribute,
                         value=float(value),
-                        cluster_id=cluster_id,
                     )
                     session.add(scalar_result)
 
@@ -123,7 +116,6 @@ def store_scenario_results(
                         attribute=attribute,
                         timeseries=cleaned_series.tolist(),
                         total_energy=cleaned_series.sum(),
-                        cluster_id=cluster_id,
                     )
                     session.add(flow)
 
