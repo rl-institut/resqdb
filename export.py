@@ -5,6 +5,7 @@ from __future__ import annotations
 import shutil
 import warnings
 
+import pandas as pd
 from loguru import logger
 from sqlalchemy import exc
 from sqlalchemy.orm import Session
@@ -81,12 +82,23 @@ def store_scenario_results(
         ValueError: If the given scenario ID does not exist in the database.
 
     """
+
+    def set_timestamps(df: pd.DataFrame, year: int) -> pd.DataFrame:
+        """Create hourly timestamps for given year and set them as column 'timestamp'."""
+        df["timestamp"] = pd.date_range(
+            start=f"{year}-01-01",
+            freq="h",
+            periods=len(df),
+        )
+        return df
+
     with Session(settings.ENGINE) as session:
         # Check if a scenario exists
         try:
-            session.get_one(models.Scenario, {"id": scenario_id})
+            scenario = session.get_one(models.Scenario, {"id": scenario_id})
         except exc.NoResultFound as err:
             raise ValueError(f"Scenario #{scenario_id} not found in database.") from err
+        logger.info(f"Exporting data to #{scenario_id}.")
 
         for is_exogenous, data in ((True, input_data), (False, output_data)):
             for (from_node, to_node), result in data.items():
@@ -108,16 +120,30 @@ def store_scenario_results(
 
                 for attribute, series in result["sequences"].items():
                     cleaned_series = series.dropna()
-                    flow = models.Sequence(
+                    sequence = models.Sequence(
                         scenario_id=scenario_id,
                         is_exogenous=is_exogenous,
                         from_node=from_node_label,
                         to_node=to_node_label,
                         attribute=attribute,
-                        timeseries=cleaned_series.tolist(),
                         total_energy=cleaned_series.sum(),
                     )
-                    session.add(flow)
+                    session.add(sequence)
+                    session.commit()
+
+                    timeseries = series.to_frame()
+                    timeseries["sequence_id"] = sequence.id
+                    timeseries = timeseries.rename(columns={attribute: "value"})
+                    timeseries = set_timestamps(
+                        timeseries,
+                        scenario.period.reference_year,
+                    )
+                    timeseries.to_sql(
+                        "timeseries",
+                        con=settings.ENGINE,
+                        if_exists="append",
+                        index=False,
+                    )
 
         session.commit()
         logger.info(f"Stored results for scenario #{scenario_id}.")

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  superset:
+    image: apache/superset:5.0.0
+    container_name: superset
+    env_file:
+      - .env
+    ports:
+      - "8088:8088"
+    network_mode: host
+    volumes:
+      - superset_data:/app/superset_home
+    restart: unless-stopped
+
+volumes:
+  superset_data:

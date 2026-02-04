@@ -6,14 +6,15 @@ import geopandas as gpd
 from geoalchemy2 import Geometry
 from loguru import logger
 from sqlalchemy import (
-    ARRAY,
     Boolean,
     Column,
+    DateTime,
     Float,
     ForeignKey,
     Index,
     Integer,
     MetaData,
+    PrimaryKeyConstraint,
     String,
     UniqueConstraint,
     delete,
@@ -23,6 +24,7 @@ from sqlalchemy import (
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, declarative_base, relationship
 
+import settings
 import views
 from settings import CATEGORIES, CLUSTER_GEOPACKAGE, CLUSTERS, DB_SCHEMA, ENGINE, LABELS
 
@@ -173,7 +175,7 @@ class ClusterComponent(Base):
 
 
 class Sequence(Base):
-    """Holds oemof timeseries results for a scenario."""
+    """Holds oemof sequence information for a scenario."""
 
     __tablename__ = "sequence"
     __table_args__ = (
@@ -186,15 +188,26 @@ class Sequence(Base):
             unique=True,
         ),
     )
-
     id = Column(Integer, primary_key=True)
     scenario_id = Column(ForeignKey("scenario.id", ondelete="CASCADE"), nullable=False)
     is_exogenous = Column(Boolean, nullable=False)
     from_node = Column(String)
     to_node = Column(String)
     attribute = Column(String)
-    timeseries = Column(ARRAY(Float))
     total_energy = Column(Float)
+
+
+class Timeseries(Base):
+    """Holds timeseries data for a sequence."""
+
+    __tablename__ = "timeseries"
+    __table_args__ = (
+        # It's recommended by TimscaleDB to integrate "timestamp" into PK
+        PrimaryKeyConstraint("sequence_id", "timestamp"),
+    )
+    sequence_id = Column(ForeignKey("sequence.id", ondelete="CASCADE"), nullable=False)
+    timestamp = Column(DateTime, nullable=False)
+    value = Column(Float)
 
 
 class Scalar(Base):
@@ -234,6 +247,24 @@ class Category(Base):
     category = Column(String, nullable=False)
     carrier = Column(String, nullable=False)
     is_renewable = Column(Boolean, nullable=False)
+
+
+def set_up_timescaledb() -> None:
+    """Set up the timescaledb database."""
+    with Session(settings.ENGINE) as session:
+        session.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb;"))
+        session.execute(
+            text(
+                """
+            SELECT create_hypertable(
+                'timeseries',
+                'timestamp',
+                if_not_exists => TRUE
+            );
+        """,
+            ),
+        )
+        session.commit()
 
 
 def get_or_create(
@@ -378,10 +409,8 @@ def update_cluster_components() -> None:
 def setup_db() -> None:
     """Set up DB schema and tables from models."""
     logger.info("Setting up DB schema and tables.")
-    with ENGINE.connect() as connection:
-        connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {DB_SCHEMA}"))
-        connection.commit()
     Base.metadata.create_all(ENGINE)
+    set_up_timescaledb()
     add_default_weather_and_climate()
     add_default_periods()
     update_default_labels()

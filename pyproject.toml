@@ -11,6 +11,7 @@ dependencies = [
     "oemof-tabular",
     "psycopg2-binary>=2.9.11",
     "python-dotenv>=1.2.1",
+    "sqlalchemy-timescaledb>=0.4.1",
     "sqlalchemy>=2.0.44",
 ]
 
@@ -28,15 +29,6 @@ dev = [
 output-format = "concise"  # This enables file-links to errors in git console
 line-length = 120
 lint.select = ["ALL"]
-exclude = [
-  "manage.py",
-  "slapp/utils/ogr_layer_mapping.py",
-  "config/wsgi.py",
-  "slapp/contrib/*",
-  "slapp/users/*",
-  "merge_local_dotenvs_in_dotenv.py",
-  "slapp/utils/context_processors.py"
-]
 lint.ignore = [
   "I001",    # Import block is un-sorted or un-formatted (done by isort)
   "D203",    # 1 blank line required before class docstring
@@ -54,9 +46,18 @@ lint.ignore = [
   "PD011",   # Use `.to_numpy()` instead of `.values`  (does not work out of the box)
   "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
 ]
+lint.unfixable = ["UP007", "I001"]
+exclude = [
+  "manage.py",
+  "slapp/utils/ogr_layer_mapping.py",
+  "config/wsgi.py",
+  "slapp/contrib/*",
+  "slapp/users/*",
+  "merge_local_dotenvs_in_dotenv.py",
+  "slapp/utils/context_processors.py"
+]
 fix = true
 show-fixes = true
-lint.unfixable = ["UP007", "I001"]
 
 [tool.isort]
 multi_line_output = 3

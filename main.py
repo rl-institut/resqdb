@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-
 import argparse
+import contextlib
 from typing import TYPE_CHECKING
+
+from scenarios import ScenarioError
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -15,30 +17,34 @@ import scenarios
 import simulation
 import views
 
-
 NO_ARGS_FCT = ("setup", "nuke")
 
 
-def run_all() -> None:
+def run_all(*, force_creation: bool = False) -> None:
     """Run all scenarios store results in the database."""
     for file in scenarios.get_scenarios_in_folder():
-        run_scenario(file)
+        run_scenario(file, force_creation=force_creation)
     views.create_all_views(recreate=True)
 
 
-def run_scenario(file: str | Path) -> None:
+def run_scenario(file: str | Path, *, force_creation: bool = False) -> None:
     """Run scenario from scenario folder."""
     scenario_config = scenarios.load_scenario_settings_from_file(file)
-    scenario_id, created = scenarios.create_scenario(
-        scenario_config.name,
-        **scenario_config.scenario,
-    )
-    if created:
-        input_data, output_data = simulation.simulate_datapackage(
-            scenario_config.datapackage,
-            scenario_config.capacities,
+    if force_creation:
+        with contextlib.suppress(ScenarioError):
+            scenarios.delete_scenario(scenario_config.name)
+    try:
+        scenario_id = scenarios.create_scenario(
+            scenario_config.name,
+            **scenario_config.scenario,
         )
-        export.store_scenario_results(scenario_id, input_data, output_data)
+    except ScenarioError:
+        return
+    input_data, output_data = simulation.simulate_datapackage(
+        scenario_config.datapackage,
+        scenario_config.capacities,
+    )
+    export.store_scenario_results(scenario_id, input_data, output_data)
 
 
 def handle_delete(args: argparse.Namespace) -> None:
@@ -52,9 +58,9 @@ def handle_delete(args: argparse.Namespace) -> None:
 def handle_run(args: argparse.Namespace) -> None:
     """Handle scenario runs."""
     if args.scenario == "all":
-        run_all()
+        run_all(force_creation=args.force)
     else:
-        run_scenario(args.scenario)
+        run_scenario(args.scenario, force_creation=args.force)
 
 
 def handle_views(args: argparse.Namespace) -> None:
@@ -93,6 +99,7 @@ def main() -> None:
     # DB setup command
     run_parser = subparsers.add_parser("run")
     run_parser.add_argument("scenario", nargs="?", default="all")
+    run_parser.add_argument("-f", "--force", action="store_true")
     run_parser.set_defaults(func=handle_run)
 
     # DB setup command

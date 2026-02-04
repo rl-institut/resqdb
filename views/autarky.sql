@@ -4,8 +4,7 @@ WITH
       scenario_id,
       scenario.name AS scenario_name,
       category,
-      total_energy,
-      timeseries
+      total_energy
     FROM
       sequence
       JOIN scenario ON sequence.scenario_id = scenario.id

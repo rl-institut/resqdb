@@ -5,6 +5,8 @@ from __future__ import annotations
 import dataclasses
 from typing import TYPE_CHECKING
 
+from sqlalchemy.exc import IntegrityError
+
 if TYPE_CHECKING:
     from pathlib import Path
     from collections.abc import Iterable
@@ -16,6 +18,10 @@ from sqlalchemy.orm import Session
 
 import models
 from settings import ENGINE, SCENARIOS_DIR
+
+
+class ScenarioError(Exception):
+    """Raised when scenario or related data does not exist in the database."""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -54,13 +60,23 @@ def load_scenario_settings_from_file(filepath: str | Path) -> ScenarioConfig:
     return ScenarioConfig(**scenario_config)
 
 
+def get_instance_by_name(session: Session, model, name: str) -> int:  # noqa: ANN001
+    """Retrieve database ID for a reference entity by name."""
+    entity_id = session.execute(
+        select(model.id).where(model.name == name),
+    ).scalar_one_or_none()
+    if entity_id is None:
+        raise ScenarioError(f"'{name}' not found in {model.__name__}.")
+    return int(entity_id)
+
+
 def create_scenario(
     name: str,
     period: str,
     climate: str,
     weather: str,
     sensitivity_id: int | None = None,
-) -> tuple[int, bool]:
+) -> int:
     """
     Create a new scenario in the database with given setup.
 
@@ -80,50 +96,52 @@ def create_scenario(
         bool: Whether scenario has been created or already existed.
 
     Raises:
-        KeyError: If the specified climate or weather is not found in the database.
+        KeyError: If the specified climate, weather, or period is not found in the database.
 
     """
     with Session(ENGINE) as session:
-        period_id = session.execute(
-            select(models.Period.id).where(models.Period.name == period),
-        ).scalar_one_or_none()
-        climate_id = session.execute(
-            select(models.Climate.id).where(models.Climate.name == climate),
-        ).scalar_one_or_none()
-        weather_id = session.execute(
-            select(models.Weather.id).where(models.Weather.name == weather),
-        ).scalar_one_or_none()
-        if climate_id is None:
-            raise KeyError(f"Climate '{climate}' not found in database.")
-        if weather_id is None:
-            raise KeyError(f"Weather '{weather}' not found in database.")
+        period_id = get_instance_by_name(session, models.Period, period)
+        climate_id = get_instance_by_name(session, models.Climate, climate)
+        weather_id = get_instance_by_name(session, models.Weather, weather)
 
-        scenario, created = models.get_or_create(
-            session,
-            models.Scenario,
+        scenario = models.Scenario(
             name=name,
             period_id=period_id,
-            weather_id=int(weather_id),
-            climate_id=int(climate_id),
+            weather_id=weather_id,
+            climate_id=climate_id,
             sensitivity_id=sensitivity_id,
         )
-        if created:
-            logger.info(f"Created scenario #{scenario.id} ({scenario}).")
-        else:
-            logger.warning(f"Scenario #{scenario.id} ({scenario}) already exists.")
-        return scenario.id, created
+        session.add(scenario)
+        try:
+            session.commit()
+        except IntegrityError as ie:
+            error_msg = f"Scenario {scenario} already exists in database."
+            logger.error(error_msg)
+            raise ScenarioError(error_msg) from ie
+
+        logger.info(f"Created scenario #{scenario.id} ({scenario}).")
+        return scenario.id
 
 
-def delete_scenario(scenario_id: int) -> None:
+def delete_scenario(scenario_id: int | str) -> None:
     """
     Delete a scenario from the database.
 
     Args:
-        scenario_id (int): ID of the scenario to delete.
+        scenario_id (int|str): ID or name of the scenario to delete.
 
     """
     with Session(ENGINE) as session:
-        session.delete(session.get(models.Scenario, scenario_id))
+        if isinstance(scenario_id, int):
+            instance = session.get(models.Scenario, scenario_id)
+        else:
+            instance = session.execute(
+                select(models.Scenario).where(models.Scenario.name == scenario_id),
+            ).scalar_one_or_none()
+        if instance is None:
+            raise ScenarioError(f"Scenario {scenario_id} not found.")
+        session.delete(instance)
+        session.commit()
     logger.info(f"Scenario #{scenario_id} deleted from database.")
 
 

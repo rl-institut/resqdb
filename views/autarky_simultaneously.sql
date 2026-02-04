@@ -1,11 +1,10 @@
 WITH
   renewables AS (
     SELECT
+      sequence.id AS sequence_id,
       scenario_id,
       scenario.name AS scenario_name,
-      category,
-      total_energy,
-      timeseries
+      category
     FROM
       sequence
       JOIN scenario ON sequence.scenario_id = scenario.id
@@ -25,20 +24,9 @@ WITH
     SELECT
       scenario_id,
       scenario_name,
-      timestep,
-      SUM(
-        CASE
-          WHEN category = 'Verbrauch' THEN - elem
-          ELSE elem
-        END
-      ) AS value
-    FROM
-      renewables,
-      unnest(timeseries) WITH ORDINALITY a (elem, timestep)
-    GROUP BY
-      scenario_id,
-      scenario_name,
-      timestep
+      value
+    FROM renewables
+    JOIN timeseries USING (sequence_id)
   )
 SELECT
   scenario_id,

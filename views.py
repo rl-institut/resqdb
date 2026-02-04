@@ -5,6 +5,7 @@ from pathlib import Path
 
 from loguru import logger
 from sqlalchemy import text
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.orm import Session
 
 from settings import ENGINE, VIEWS_DIR
@@ -73,7 +74,10 @@ def create_all_views(*, recreate: bool = False) -> None:
     """
     for view_path in get_views():
         query = read_query(view_path)
-        create_view(view_path.stem, query, recreate=recreate)
+        try:
+            create_view(view_path.stem, query, recreate=recreate)
+        except ProgrammingError:
+            logger.error(f"Failed to create materialized view '{view_path.stem}'.")
 
 
 def delete_view(view_name: str) -> None:

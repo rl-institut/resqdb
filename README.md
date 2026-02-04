@@ -74,3 +74,22 @@ Recreate materialized views:
 ```bash
 python main.py views recreate
 ```
+
+## Docker Compose
+
+### Superset
+
+Set up superset container:
+1. Run `docker compose up -d --build`
+
+Set up login role:
+1. Enter container
+2. Create admin via `superset fab create-admin`
+3. Run `superset db upgrade`
+4. Run `superset init`
+
+Set up postgresql DB support:
+1. Enter container as root
+2. Install pip via `python -m ensurepip --upgrade`
+3. Run `python -m pip install psycopg2-binary`
+4. Restart container
