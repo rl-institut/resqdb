@@ -3,6 +3,7 @@ WITH
     SELECT
       scenario_id,
       scenario.name AS scenario_name,
+      sequence.id AS sequence_id,
       category,
       total_energy
     FROM
@@ -19,7 +20,33 @@ WITH
       )
     ORDER BY
       scenario_id
+  ),
+  autarky_per_timestep AS (
+    SELECT
+      scenario_id,
+      scenario_name,
+      timestamp,
+      SUM(CASE WHEN category = 'Verbrauch' THEN -value ELSE value END) AS value
+    FROM renewables
+    JOIN timeseries USING (sequence_id)
+    GROUP BY scenario_id, scenario_name, timestamp
   )
+SELECT
+  scenario_id,
+  scenario_name,
+  'Zeitgleich' AS type,
+  COUNT(*) FILTER (
+    WHERE
+      value > 0
+  ) AS autarky
+FROM
+  autarky_per_timestep
+GROUP BY
+  scenario_id,
+  scenario_name
+
+UNION
+
 SELECT
   scenario_id,
   scenario_name,
