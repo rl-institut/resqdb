@@ -21,7 +21,7 @@ from sqlalchemy import (
     select,
     text,
 )
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.orm import Session, declarative_base, relationship
 
 import settings
@@ -252,7 +252,14 @@ class Category(Base):
 def set_up_timescaledb() -> None:
     """Set up the timescaledb database."""
     with Session(settings.ENGINE) as session:
-        session.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb;"))
+        try:
+            session.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb;"))
+        except ProgrammingError:
+            logger.warning(
+                "Could not create extension 'timescaledb'. It might be installed already though.",
+            )
+        session.commit()
+    with Session(settings.ENGINE) as session:
         session.execute(
             text(
                 """
