@@ -93,3 +93,13 @@ Set up postgresql DB support:
 2. Install pip via `python -m ensurepip --upgrade`
 3. Run `python -m pip install psycopg2-binary`
 4. Restart container
+
+Import database, datasets, charts and dashboards
+(This works only for an empty Superset environment)
+1. Set correct sqlalchemy_uri in file `superset/databases/ResQEnergy.yaml`
+1. Create `.zip` file from folder superset
+2. Login to Superset
+3. Open tab "Dashboards"
+4. Click on "Import dashboards"
+5. Select zipped superset file
+6. Enter database password

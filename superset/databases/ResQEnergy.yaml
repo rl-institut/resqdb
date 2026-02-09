@@ -1,0 +1,14 @@
+database_name: ResQEnergy
+sqlalchemy_uri: postgresql+psycopg2://<user>:<password>@localhost:5432/resqenergy
+cache_timeout: null
+expose_in_sqllab: true
+allow_run_async: false
+allow_ctas: false
+allow_cvas: false
+allow_dml: false
+allow_file_upload: false
+extra:
+  allows_virtual_table_explore: true
+impersonate_user: false
+uuid: 0745b0de-571c-4f58-9290-8d1ba09229ed
+version: 1.0.0

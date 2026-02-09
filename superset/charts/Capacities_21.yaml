@@ -1,0 +1,86 @@
+slice_name: Capacities
+description: null
+certified_by: null
+certification_details: null
+viz_type: echarts_timeseries_bar
+params:
+  datasource: 18__table
+  viz_type: echarts_timeseries_bar
+  slice_id: 21
+  x_axis: label
+  x_axis_sort_asc: true
+  metrics:
+  - aggregate: SUM
+    column:
+      advanced_data_type: null
+      certification_details: null
+      certified_by: null
+      column_name: capacity
+      description: null
+      expression: null
+      filterable: true
+      groupby: true
+      id: 132
+      is_certified: false
+      is_dttm: false
+      python_date_format: null
+      type: DOUBLE PRECISION
+      type_generic: 0
+      verbose_name: null
+      warning_markdown: null
+    datasourceWarning: false
+    expressionType: SIMPLE
+    hasCustomLabel: false
+    label: SUM(capacity)
+    optionName: metric_7vajqxwlm1p_ofebyufifb
+    sqlExpression: null
+  groupby: []
+  contributionMode: null
+  adhoc_filters: []
+  order_desc: true
+  row_limit: 10000
+  truncate_metric: true
+  show_empty_columns: true
+  comparison_type: values
+  annotation_layers: []
+  forecastPeriods: 10
+  forecastInterval: 0.8
+  orientation: vertical
+  x_axis_title: Technologie
+  x_axis_title_margin: 50
+  y_axis_title: Leistung [MW]
+  y_axis_title_margin: 50
+  y_axis_title_position: Left
+  sort_series_type: avg
+  sort_series_ascending: false
+  color_scheme: supersetColors
+  time_shift_color: true
+  show_value: true
+  stack: null
+  only_total: true
+  minorTicks: true
+  zoomable: false
+  show_legend: true
+  legendType: scroll
+  legendOrientation: top
+  x_axis_time_format: smart_date
+  y_axis_format: SMART_NUMBER
+  y_axis_bounds:
+  - null
+  - null
+  truncateXAxis: true
+  rich_tooltip: true
+  showTooltipTotal: true
+  tooltipTimeFormat: smart_date
+  extra_form_data: {}
+  dashboards:
+  - 4
+query_context: '{"datasource":{"id":18,"type":"table"},"force":false,"queries":[{"filters":[],"extras":{"having":"","where":""},"applied_time_extras":{},"columns":[{"columnType":"BASE_AXIS","sqlExpression":"label","label":"label","expressionType":"SQL"}],"metrics":[{"aggregate":"SUM","column":{"advanced_data_type":null,"certification_details":null,"certified_by":null,"column_name":"capacity","description":null,"expression":null,"filterable":true,"groupby":true,"id":132,"is_certified":false,"is_dttm":false,"python_date_format":null,"type":"DOUBLE
+  PRECISION","type_generic":0,"verbose_name":null,"warning_markdown":null},"datasourceWarning":false,"expressionType":"SIMPLE","hasCustomLabel":false,"label":"SUM(capacity)","optionName":"metric_7vajqxwlm1p_ofebyufifb","sqlExpression":null}],"orderby":[[{"aggregate":"SUM","column":{"advanced_data_type":null,"certification_details":null,"certified_by":null,"column_name":"capacity","description":null,"expression":null,"filterable":true,"groupby":true,"id":132,"is_certified":false,"is_dttm":false,"python_date_format":null,"type":"DOUBLE
+  PRECISION","type_generic":0,"verbose_name":null,"warning_markdown":null},"datasourceWarning":false,"expressionType":"SIMPLE","hasCustomLabel":false,"label":"SUM(capacity)","optionName":"metric_7vajqxwlm1p_ofebyufifb","sqlExpression":null},false]],"annotation_layers":[],"row_limit":10000,"series_columns":[],"series_limit":0,"order_desc":true,"url_params":{},"custom_params":{},"custom_form_data":{},"time_offsets":[],"post_processing":[{"operation":"pivot","options":{"index":["label"],"columns":[],"aggregates":{"SUM(capacity)":{"operator":"mean"}},"drop_missing_columns":false}},{"operation":"flatten"}]}],"form_data":{"datasource":"18__table","viz_type":"echarts_timeseries_bar","slice_id":21,"x_axis":"label","x_axis_sort_asc":true,"metrics":[{"aggregate":"SUM","column":{"advanced_data_type":null,"certification_details":null,"certified_by":null,"column_name":"capacity","description":null,"expression":null,"filterable":true,"groupby":true,"id":132,"is_certified":false,"is_dttm":false,"python_date_format":null,"type":"DOUBLE
+  PRECISION","type_generic":0,"verbose_name":null,"warning_markdown":null},"datasourceWarning":false,"expressionType":"SIMPLE","hasCustomLabel":false,"label":"SUM(capacity)","optionName":"metric_7vajqxwlm1p_ofebyufifb","sqlExpression":null}],"groupby":[],"contributionMode":null,"adhoc_filters":[],"order_desc":true,"row_limit":10000,"truncate_metric":true,"show_empty_columns":true,"comparison_type":"values","annotation_layers":[],"forecastPeriods":10,"forecastInterval":0.8,"orientation":"vertical","x_axis_title":"Technologie","x_axis_title_margin":50,"y_axis_title":"Leistung
+  [MW]","y_axis_title_margin":50,"y_axis_title_position":"Left","sort_series_type":"avg","sort_series_ascending":false,"color_scheme":"supersetColors","time_shift_color":true,"show_value":true,"stack":null,"only_total":true,"minorTicks":true,"zoomable":false,"show_legend":true,"legendType":"scroll","legendOrientation":"top","x_axis_time_format":"smart_date","y_axis_format":"SMART_NUMBER","y_axis_bounds":[null,null],"truncateXAxis":true,"rich_tooltip":true,"showTooltipTotal":true,"tooltipTimeFormat":"smart_date","extra_form_data":{},"dashboards":[4],"force":false,"result_format":"json","result_type":"full"},"result_format":"json","result_type":"full"}'
+cache_timeout: null
+uuid: 12928ed3-d046-4d1c-8bf9-039ca7cf4c4e
+version: 1.0.0
+dataset_uuid: 8bc246ec-9fdc-40b3-95b7-ba09e349160f

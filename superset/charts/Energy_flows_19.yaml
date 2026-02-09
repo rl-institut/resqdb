@@ -1,0 +1,51 @@
+slice_name: Energy flows
+description: null
+certified_by: null
+certification_details: null
+viz_type: sankey_v2
+params:
+  datasource: 17__table
+  viz_type: sankey_v2
+  slice_id: 19
+  source: from_label
+  target: to_label
+  metric:
+    aggregate: SUM
+    column:
+      advanced_data_type: null
+      certification_details: null
+      certified_by: null
+      column_name: total_energy
+      description: null
+      expression: null
+      filterable: true
+      groupby: true
+      id: 125
+      is_certified: false
+      is_dttm: false
+      python_date_format: null
+      type: DOUBLE PRECISION
+      type_generic: 0
+      verbose_name: null
+      warning_markdown: null
+    datasourceWarning: false
+    expressionType: SIMPLE
+    hasCustomLabel: false
+    label: SUM(total_energy)
+    optionName: metric_rax9vq2oy6_0gaoom7npxss
+    sqlExpression: null
+  adhoc_filters: []
+  row_limit: 10000
+  sort_by_metric: true
+  color_scheme: modernSunset
+  extra_form_data: {}
+  dashboards:
+  - 4
+query_context: '{"datasource":{"id":17,"type":"table"},"force":false,"queries":[{"filters":[],"extras":{"having":"","where":""},"applied_time_extras":{},"columns":[],"metrics":[{"aggregate":"SUM","column":{"advanced_data_type":null,"certification_details":null,"certified_by":null,"column_name":"total_energy","description":null,"expression":null,"filterable":true,"groupby":true,"id":125,"is_certified":false,"is_dttm":false,"python_date_format":null,"type":"DOUBLE
+  PRECISION","type_generic":0,"verbose_name":null,"warning_markdown":null},"datasourceWarning":false,"expressionType":"SIMPLE","hasCustomLabel":false,"label":"SUM(total_energy)","optionName":"metric_rax9vq2oy6_0gaoom7npxss","sqlExpression":null}],"orderby":[[{"aggregate":"SUM","column":{"advanced_data_type":null,"certification_details":null,"certified_by":null,"column_name":"total_energy","description":null,"expression":null,"filterable":true,"groupby":true,"id":125,"is_certified":false,"is_dttm":false,"python_date_format":null,"type":"DOUBLE
+  PRECISION","type_generic":0,"verbose_name":null,"warning_markdown":null},"datasourceWarning":false,"expressionType":"SIMPLE","hasCustomLabel":false,"label":"SUM(total_energy)","optionName":"metric_rax9vq2oy6_0gaoom7npxss","sqlExpression":null},false]],"annotation_layers":[],"row_limit":10000,"series_limit":0,"order_desc":true,"url_params":{},"custom_params":{},"custom_form_data":{},"groupby":["from_label","to_label"]}],"form_data":{"datasource":"17__table","viz_type":"sankey_v2","slice_id":19,"source":"from_label","target":"to_label","metric":{"aggregate":"SUM","column":{"advanced_data_type":null,"certification_details":null,"certified_by":null,"column_name":"total_energy","description":null,"expression":null,"filterable":true,"groupby":true,"id":125,"is_certified":false,"is_dttm":false,"python_date_format":null,"type":"DOUBLE
+  PRECISION","type_generic":0,"verbose_name":null,"warning_markdown":null},"datasourceWarning":false,"expressionType":"SIMPLE","hasCustomLabel":false,"label":"SUM(total_energy)","optionName":"metric_rax9vq2oy6_0gaoom7npxss","sqlExpression":null},"adhoc_filters":[],"row_limit":10000,"sort_by_metric":true,"color_scheme":"modernSunset","extra_form_data":{},"dashboards":[4],"force":false,"result_format":"json","result_type":"full"},"result_format":"json","result_type":"full"}'
+cache_timeout: null
+uuid: b0cc31b0-6ceb-49ec-a52b-f336f34f6eac
+version: 1.0.0
+dataset_uuid: de696411-b046-45ca-9026-863cd75a409a
