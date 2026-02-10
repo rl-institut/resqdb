@@ -13,6 +13,7 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "sqlalchemy-timescaledb>=0.4.1",
     "sqlalchemy>=2.0.44",
+    "alembic>=1.18.3",
 ]
 
 [tool.uv.sources]
@@ -48,16 +49,21 @@ lint.ignore = [
 ]
 lint.unfixable = ["UP007", "I001"]
 exclude = [
-  "manage.py",
-  "slapp/utils/ogr_layer_mapping.py",
-  "config/wsgi.py",
-  "slapp/contrib/*",
-  "slapp/users/*",
-  "merge_local_dotenvs_in_dotenv.py",
-  "slapp/utils/context_processors.py"
+  "alembic/"
 ]
 fix = true
 show-fixes = true
 
 [tool.isort]
 multi_line_output = 3
+
+
+[tool.alembic]
+
+# path to migration scripts.
+script_location = "%(here)s/alembic"
+
+# additional paths to be prepended to sys.path. defaults to the current working directory.
+prepend_sys_path = [
+    "."
+]

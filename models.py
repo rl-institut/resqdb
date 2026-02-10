@@ -26,6 +26,8 @@ from sqlalchemy.orm import Session, declarative_base, relationship
 
 import settings
 import views
+from alembic import command
+from alembic.config import Config
 from settings import CATEGORIES, CLUSTER_GEOPACKAGE, CLUSTERS, DB_SCHEMA, ENGINE, LABELS
 
 Base = declarative_base(metadata=MetaData(schema=DB_SCHEMA))
@@ -413,10 +415,18 @@ def update_cluster_components() -> None:
         session.commit()
 
 
+def migrate() -> None:
+    """Run alembic migrations."""
+    alembic_cfg = Config()
+    alembic_cfg.set_main_option("script_location", str(settings.ROOT_DIR / "alembic"))
+    alembic_cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+    command.upgrade(alembic_cfg, "head")
+
+
 def setup_db() -> None:
     """Set up DB schema and tables from models."""
     logger.info("Setting up DB schema and tables.")
-    Base.metadata.create_all(ENGINE)
+    migrate()
     set_up_timescaledb()
     add_default_weather_and_climate()
     add_default_periods()
