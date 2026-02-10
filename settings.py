@@ -40,10 +40,7 @@ DATABASE_URL = f"timescaledb://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_N
 def connect_to_db(url: str) -> Engine:
     """Connect to the PostgreSQL database."""
     logger.info(f"Connecting to database: {url}")
-    return create_engine(
-        DATABASE_URL,
-        connect_args={"options": f"-c search_path={DB_SCHEMA},public"},
-    )
+    return create_engine(DATABASE_URL)
 
 
 ENGINE = connect_to_db(DATABASE_URL)
