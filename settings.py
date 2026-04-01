@@ -64,3 +64,8 @@ with (CONFIG_DIR / "labels.json").open("r", encoding="utf-8") as json_file:
 with (CONFIG_DIR / "categories.json").open("r", encoding="utf-8") as json_file:
     categories_raw = json.load(json_file)
 CATEGORIES = {tuple(key.split("|")): value for key, value in categories_raw.items()}
+
+# --- S3 Support ---
+S3_ENDPOINT = os.environ.get("S3_ENDPOINT")
+S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
