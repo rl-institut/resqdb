@@ -9,6 +9,12 @@ from oemof.tabular.facades import TYPEMAP
 
 import hooks
 import settings
+from facades.heatpump import Heatpump, FLHHeatpump
+
+
+RESQ_TYPEMAP = TYPEMAP.copy()
+RESQ_TYPEMAP["heatpump"] = Heatpump
+RESQ_TYPEMAP["flh_heatpump"] = FLHHeatpump
 
 
 def simulate_datapackage(
@@ -36,7 +42,7 @@ def simulate_datapackage(
     datapackage_json = str(
         settings.DATAPACKAGE_DIR / datapackage_name / "datapackage.json",
     )
-    es = EnergySystem.from_datapackage(datapackage_json, typemap=TYPEMAP)
+    es = EnergySystem.from_datapackage(datapackage_json, typemap=RESQ_TYPEMAP)
 
     # Adapt ES from parameters
     parameters = parameters or {}
