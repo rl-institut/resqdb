@@ -9,12 +9,13 @@ from oemof.tabular.facades import TYPEMAP
 
 import hooks
 import settings
-from facades.heatpump import Heatpump, FLHHeatpump
+from facades.heatpump import AquiferHeatpump, Heatpump, FLHHeatpump
 
 
 RESQ_TYPEMAP = TYPEMAP.copy()
 RESQ_TYPEMAP["heatpump"] = Heatpump
 RESQ_TYPEMAP["flh_heatpump"] = FLHHeatpump
+RESQ_TYPEMAP["aquifer_heatpump"] = AquiferHeatpump
 
 
 def simulate_datapackage(
