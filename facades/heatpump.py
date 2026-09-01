@@ -140,8 +140,7 @@ class Heatpump(Converter, Facade):
                     nominal_value=self._nominal_value(),
                     variable_costs=self.marginal_cost,
                     investment=self._investment(),
-                    max=self.low_temperature_potential
-                    / ((self.efficiency - 1) / self.efficiency),
+                    max=self.low_temperature_potential / ((self.efficiency - 1) / self.efficiency),
                     **self.output_parameters,
                 ),
             },
@@ -418,9 +417,7 @@ class AquiferHeatpump(Converter, Facade):
         # Scalars must stay scalars: solph turns them into an endless sequence,
         # while a list of length one would only cover the first time step.
         heat_efficiency = cop_values if cop_is_series else self.cop
-        aquifer_efficiency = (
-            [cop - 1 for cop in cop_values] if cop_is_series else self.cop - 1
-        )
+        aquifer_efficiency = [cop - 1 for cop in cop_values] if cop_is_series else self.cop - 1
 
         self.conversion_factors.update(
             {
