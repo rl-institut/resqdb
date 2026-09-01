@@ -25,6 +25,11 @@ dev = [
     "pre-commit>=4.5.0",
     "pytest>=9.0.1",
 ]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::oemof.tools.debugging.SuspiciousUsageWarning",
+]
 
 # ==== ruff ====
 [tool.ruff]
