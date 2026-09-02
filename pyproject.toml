@@ -25,6 +25,11 @@ dev = [
     "pre-commit>=4.5.0",
     "pytest>=9.0.1",
 ]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::oemof.tools.debugging.SuspiciousUsageWarning",
+]
 
 # ==== ruff ====
 [tool.ruff]
@@ -47,6 +52,7 @@ lint.ignore = [
   "G004",    # Logging statement uses f-string
   "PD011",   # Use `.to_numpy()` instead of `.values`  (does not work out of the box)
   "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
+  "COM812",  # Trailing comma missing (conflicts with the formatter; black handles commas)
 ]
 lint.unfixable = ["UP007", "I001"]
 exclude = [
@@ -54,6 +60,11 @@ exclude = [
 ]
 fix = true
 show-fixes = true
+
+# ==== black ====
+[tool.black]
+line-length = 120
+
 
 [tool.isort]
 multi_line_output = 3
